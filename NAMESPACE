@@ -1,0 +1,12 @@
+useDynLib(unifiedDBI)
+
+export(
+       dbConnect,
+       dbSendQuery,
+       dbfetch
+       ##dbDisconnect,
+       ##dbCommit,
+       ##dbRollback
+       )
+
+##S3method("print", "dbConnection")
