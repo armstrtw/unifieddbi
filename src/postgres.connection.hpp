@@ -21,9 +21,9 @@ public:
   void disConnect();
   bool commit();
   bool rollback();
-  void listTables(std::vector<std::string>& ans);
+  SEXP listTables();
   SEXP readTable(const char* tableName);
-  void writeTable(const char* tableName, SEXP x, const bool writeRowNames, const bool overwrite, const bool append);
+  int writeTable(const char* tableName, SEXP x, const bool writeRowNames, const bool overwrite, const bool append);
   bool existsTable(const char* tableName);
   bool removeTable(const char* tableName);
   PostgresResults* sendQuery(const char* query);

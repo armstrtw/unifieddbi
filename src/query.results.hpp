@@ -19,8 +19,9 @@ public:
 
   // implemented in base class
   void getColnames(std::vector<std::string>& ans) const;
+  SEXP allocSEXP(const R_len_t fetch_rows) const;
   SEXP fetch(const int nrows);
-  SEXP allocSEXP(const R_len_t fetch_rows);
+
 };
 
 

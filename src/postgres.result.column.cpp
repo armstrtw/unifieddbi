@@ -5,9 +5,11 @@
 using std::cerr;
 using std::endl;
 
+PostgresResultColumn::~PostgresResultColumn() {}
+
 PostgresResultColumn::PostgresResultColumn(const PGresult *res, const int position):
-  res_(res),
-  QueryResultColumn(position) {}
+  QueryResultColumn(position),
+  res_(res) {}
 
 const bool PostgresResultColumn::isNullValue(const int row) const {
   return static_cast<bool>(PQgetisnull(res_,row,position_));

@@ -8,7 +8,7 @@ QueryResults::~QueryResults() {
 
 // use nrows as parameter b/c user might not want full
 // results set of query i.e call to fetch(res, n = 100)
-SEXP QueryResults::allocSEXP(const R_len_t nrows) {
+SEXP QueryResults::allocSEXP(const R_len_t nrows) const {
   SEXP ans;
   const int ncols = ncol();
 

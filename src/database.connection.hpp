@@ -17,9 +17,9 @@ public:
   virtual void disConnect() = 0;
   virtual bool commit() = 0;
   virtual bool rollback() = 0;
-  virtual void listTables(std::vector<std::string>& ans) = 0;
+  virtual SEXP listTables() = 0;
   virtual SEXP readTable(const char* tableName) = 0;
-  virtual void writeTable(const char* tableName, SEXP x, const bool writeRowNames, const bool overwrite, const bool append) = 0;
+  virtual int writeTable(const char* tableName, SEXP x, const bool writeRowNames, const bool overwrite, const bool append) = 0;
   virtual bool existsTable(const char* tableName) = 0;
   virtual bool removeTable(const char* tableName) = 0;
   virtual QueryResults* sendQuery(const char* query) = 0;

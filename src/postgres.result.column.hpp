@@ -14,14 +14,16 @@ protected:
   PostgresResultColumn(const PGresult *res, const int position);
   const bool isNullValue(const int row) const;
   const char* getValue(const int row) const;
-public:  
-  virtual SEXP allocateSEXP(const R_len_t nrows) const;
-  virtual void setValue(SEXP x, const R_len_t row) const;
+public:
+  virtual ~PostgresResultColumn();
   const char* getName() const;
+  virtual SEXP allocateSEXP(const R_len_t nrows) const = 0;
+  virtual void setValue(SEXP x, const R_len_t row) const = 0;
   static PostgresResultColumn* createPostgresColumn(const PGresult *res, const int position);
 };
 
-
+// use this one when we can't find or haven't implemented
+// a postgres OID type
 class defaultResultColumn : public PostgresResultColumn {
   defaultResultColumn(const PGresult *res, const int position);
   friend class PostgresResultColumn;

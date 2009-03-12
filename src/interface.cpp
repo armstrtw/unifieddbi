@@ -79,7 +79,6 @@ SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp) {
 }
 
 SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp) {
-  SEXP ans;
   const int nrows = INTEGER(nrows_sexp)[0];
   QueryResults* query_results = reinterpret_cast<QueryResults*>(R_ExternalPtrAddr(dbi_query_results_sexp));
 

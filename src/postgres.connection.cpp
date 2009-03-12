@@ -60,15 +60,16 @@ bool PostgresConnection::rollback() {
   // does nothing on Postgres
 }
 
-void PostgresConnection::listTables(std::vector<std::string>& ans) {
+SEXP PostgresConnection::listTables() {
   if(!connectionValid()) {
     cerr << "cannot connect to databse" << endl;
-    return;
+    return R_NilValue;
   }
 
   const char* query = "select tablename from pg_tables where schemaname !='information_schema' and schemaname !='pg_catalog'";
   QueryResults* res = sendQuery(query);
   // FIXME: convert to string vector...
+  res->fetch(-1);
 }
 
 SEXP PostgresConnection::readTable(const char* tableName) {
@@ -82,13 +83,14 @@ SEXP PostgresConnection::readTable(const char* tableName) {
   QueryResults* res = sendQuery(query.str().c_str());
 
   //FIXME: convert to SEXP
+  return res->fetch(-1);
 }
 
-void PostgresConnection::writeTable(const char* tableName, SEXP x, const bool writeRowNames, const bool overwrite, const bool append) {
+int PostgresConnection::writeTable(const char* tableName, SEXP x, const bool writeRowNames, const bool overwrite, const bool append) {
   if(!connectionValid()) {
     cerr << "cannot connect to databse" << endl;
   }
-
+  return 0;
 }
 
 bool PostgresConnection::existsTable(const char* tableName) {

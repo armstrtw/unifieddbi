@@ -8,9 +8,10 @@ protected:
   QueryResultColumn(const int position): position_(position) {}
   const int position_;
 public:
-  virtual const char* getName() const;
-  virtual SEXP allocateSEXP(const R_len_t nrows) const;
-  virtual void setValue(SEXP x, const R_len_t row) const;
+  virtual ~QueryResultColumn() {}
+  virtual const char* getName() const = 0;
+  virtual SEXP allocateSEXP(const R_len_t nrows) const = 0;
+  virtual void setValue(SEXP x, const R_len_t row) const = 0;
 };
 
 #endif // QUERY_RESULT_COLUMN_HPP

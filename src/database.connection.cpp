@@ -18,5 +18,6 @@ DatabaseConnection* DatabaseConnection::init(const char* dbType) {
     return new PostgresConnection();
   } else {
     cerr << "database type not found." << endl;
+    return static_cast<DatabaseConnection*>(NULL);
   }
 }
