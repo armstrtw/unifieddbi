@@ -129,14 +129,9 @@ bool PostgresConnection::removeTable(const char* tableName) {
 }
 
 PostgresResults* PostgresConnection::sendQuery(const char* query) {
-  cout << "here!!!!" << endl;
-  //return static_cast<PostgresResults*>(NULL);
-  //PostgresResults pr(static_cast<const PGresult*>(PQexec(conn_,query)));
-  return new PostgresResults(static_cast<const PGresult*>(PQexec(conn_,query)));
-  // if(query && connectionValid()) {
-  //   return new PostgresResults(PQexec(conn_,query));
-  // } else {
-  //   return NULL;
-  // }
-
+  if(query && connectionValid()) {
+    return new PostgresResults(static_cast<const PGresult*>(PQexec(conn_,query)));
+  }
+  cerr << "bad connection to database" << endl;
+  return static_cast<PostgresResults*>(NULL);
 }

@@ -75,12 +75,10 @@ SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp) {
     return R_NilValue;
   }
   const char* qry = CHAR(STRING_PTR(qry_sexp)[0]);
-  cout << "qry: " << qry << endl;
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
   QueryResults* query_results = conn->sendQuery(qry);
-  cout << query_results << endl;
   //query_results->getStatus();
-  
+
   PROTECT(dbi_query_results_sexp = R_MakeExternalPtr(reinterpret_cast<void*>(query_results),install("DBI_results_pointer"),R_NilValue));
   R_RegisterCFinalizerEx(dbi_query_results_sexp, queryResultsFinalizer, TRUE);
   UNPROTECT(1);

@@ -10,15 +10,13 @@
 using std::cout;
 using std::endl;
 
-PostgresResults::PostgresResults() {
-    cout << "bs constructor" << endl;
-}
 PostgresResults::PostgresResults(const PGresult *res) : QueryResults(), res_(res) {
-  cout << "2 constructor" << endl;
+  cout << "PostgresResults::PostgresResults(const PGresult *res)" << endl;
   initColumns();
 }
+
 PostgresResults::PostgresResults(PGresult *res) : QueryResults(), res_(res) {
-  cout << "3 constructor" << endl;
+  cout << "PostgresResults::PostgresResults(PGresult *res)" << endl;
   initColumns();
 }
 
@@ -29,14 +27,15 @@ PostgresResults::~PostgresResults() {
 
 void PostgresResults::getStatus() const {
   cout << "status: " << PQresStatus(PQresultStatus(res_)) << endl;
-  cout << "error msg: " << PQresultErrorMessage(res_) << endl;
+  const char* err = PQresultErrorMessage(res_);
+  if(err) {
+    cout << "error msg: " << err << endl;
+  }
 }
 
 void PostgresResults::initColumns() {
-  cout << "initColumns being called " << endl;
   const int ncols = ncol();
   for(int i = 0; i < ncols; i++) {
-    cout << "create col: " << i << endl;
     queryResultColumns_.push_back(PostgresResultColumn::createPostgresColumn(res_, i));
   }
 }
