@@ -68,7 +68,7 @@ SEXP dbConnect(SEXP dbType_sexp, SEXP connection_string_sexp) {
     cerr << e.what() << endl;
     return R_NilValue;
   }
-  
+
   // if we succeed then return a wrapped connection, otherwise return null
   try {
     conn->connect(connection_string);

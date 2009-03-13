@@ -1,9 +1,10 @@
 useDynLib(unifiedDBI)
 
 export(
+       dbDriver,
        dbConnect,
        dbSendQuery,
-       dbfetch,
+       fetch,
        dbClearResult
        ##dbDisconnect,
        ##dbCommit,
