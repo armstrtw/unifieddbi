@@ -32,6 +32,28 @@ static void queryResultsFinalizer(SEXP query_results_sexp) {
   R_ClearExternalPtr(query_results_sexp);
 }
 
+SEXP dbClearResult(SEXP dbi_query_results_sexp) {
+  SEXP ans;
+  PROTECT(ans = allocVector(LGLSXP,1));
+
+  if(!R_ExternalPtrAddr(dbi_query_results_sexp)) {
+    LOGICAL(ans)[0] = static_cast<int>(false);
+    UNPROTECT(1);
+    return ans;
+  }
+  QueryResults* query_results = reinterpret_cast<QueryResults*>(R_ExternalPtrAddr(dbi_query_results_sexp));
+
+  // call c++ destructor
+  delete query_results;
+  R_ClearExternalPtr(dbi_query_results_sexp);
+
+  // success
+  LOGICAL(ans)[0] = static_cast<int>(true);
+  UNPROTECT(1);
+
+  return ans;
+}
+
 SEXP dbConnect(SEXP dbType_sexp, SEXP connection_string_sexp) {
   SEXP dbi_conn_sexp;
   DatabaseConnection* conn = NULL;

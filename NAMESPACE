@@ -3,7 +3,8 @@ useDynLib(unifiedDBI)
 export(
        dbConnect,
        dbSendQuery,
-       dbfetch
+       dbfetch,
+       dbClearResult
        ##dbDisconnect,
        ##dbCommit,
        ##dbRollback

@@ -11,6 +11,7 @@ extern "C" {
   SEXP dbConnectWithParams(SEXP dbType_sexp, SEXP user_sexp, SEXP pass_sexp);
   SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp);
   SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp);
+  SEXP dbClearResult(SEXP dbi_query_results_sexp);
 }
 
 #endif // INTERFACE_HPP
