@@ -1,7 +1,10 @@
 #include <iostream>
+
+#include "interface.hpp"
 #include "postgres.connection.hpp"
 #include "query.results.hpp"
 
+using std::cout;
 using std::cerr;
 using std::endl;
 
@@ -33,7 +36,7 @@ SEXP dbConnect(SEXP dbType_sexp, SEXP connection_string_sexp) {
   SEXP dbi_conn_sexp;
   DatabaseConnection* conn = NULL;
   const char* dbType = CHAR(STRING_PTR(dbType_sexp)[0]);
-  const char* connection_string = CHAR(STRING_PTR(dbType_sexp)[0]);
+  const char* connection_string = CHAR(STRING_PTR(connection_string_sexp)[0]);
 
   // this test is to check whether the package was compiled with support
   // for this specific dbType
@@ -53,7 +56,8 @@ SEXP dbConnect(SEXP dbType_sexp, SEXP connection_string_sexp) {
   }
 
   PROTECT(dbi_conn_sexp = R_MakeExternalPtr(reinterpret_cast<void*>(conn),install("DBI_conn_pointer"),R_NilValue));
-  R_RegisterCFinalizerEx(dbi_conn_sexp, connFinalizer, TRUE); 
+  R_RegisterCFinalizerEx(dbi_conn_sexp, connFinalizer, TRUE);
+  UNPROTECT(1);
   return dbi_conn_sexp;
 }
 
@@ -67,10 +71,15 @@ SEXP dbConnectWithParams(SEXP dbType_sexp, SEXP user_sexp, SEXP pass_sexp) {
 
 SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp) {
   SEXP dbi_query_results_sexp;
-
+  if(!R_ExternalPtrAddr(dbi_conn_sexp)) {
+    return R_NilValue;
+  }
   const char* qry = CHAR(STRING_PTR(qry_sexp)[0]);
+  cout << "qry: " << qry << endl;
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
   QueryResults* query_results = conn->sendQuery(qry);
+  cout << query_results << endl;
+  //query_results->getStatus();
   
   PROTECT(dbi_query_results_sexp = R_MakeExternalPtr(reinterpret_cast<void*>(query_results),install("DBI_results_pointer"),R_NilValue));
   R_RegisterCFinalizerEx(dbi_query_results_sexp, queryResultsFinalizer, TRUE);
@@ -79,6 +88,10 @@ SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp) {
 }
 
 SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp) {
+  if(!R_ExternalPtrAddr(dbi_query_results_sexp)) {
+    return R_NilValue;
+  }
+
   const int nrows = INTEGER(nrows_sexp)[0];
   QueryResults* query_results = reinterpret_cast<QueryResults*>(R_ExternalPtrAddr(dbi_query_results_sexp));
 

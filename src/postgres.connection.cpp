@@ -8,9 +8,17 @@
 
 #include "postgres.connection.hpp"
 
-
+using std::cout;
 using std::cerr;
 using std::endl;
+
+PostgresConnection::~PostgresConnection() {
+  cout << "PostgresConnection::~PostgresConnection()" << endl;
+  PQfinish(conn_);
+  conn_ = NULL;
+}
+
+PostgresConnection::PostgresConnection(): conn_(static_cast<PGconn*>(NULL)) {}
 
 void PostgresConnection::connect(const char* connectionString) {
   conn_ = PQconnectdb(connectionString);
@@ -82,7 +90,6 @@ SEXP PostgresConnection::readTable(const char* tableName) {
   query << "select * from " << tableName << endl;
   QueryResults* res = sendQuery(query.str().c_str());
 
-  //FIXME: convert to SEXP
   return res->fetch(-1);
 }
 
@@ -117,15 +124,19 @@ bool PostgresConnection::removeTable(const char* tableName) {
   // FIXME: check for single word or schema.table ie no spaces?
   std::stringstream query;
   query <<  "drop table " << tableName;
-  QueryResults* res = sendQuery(query.str().c_str());
+  PostgresResults* res = sendQuery(query.str().c_str());
   // FIXME: send total rows affected
 }
 
 PostgresResults* PostgresConnection::sendQuery(const char* query) {
-  PostgresResults* ans = NULL;
-  if(query && connectionValid()) {
-    ans = new PostgresResults(PQexec(conn_,query));
-  } else {
-    return NULL;
-  }
+  cout << "here!!!!" << endl;
+  //return static_cast<PostgresResults*>(NULL);
+  //PostgresResults pr(static_cast<const PGresult*>(PQexec(conn_,query)));
+  return new PostgresResults(static_cast<const PGresult*>(PQexec(conn_,query)));
+  // if(query && connectionValid()) {
+  //   return new PostgresResults(PQexec(conn_,query));
+  // } else {
+  //   return NULL;
+  // }
+
 }

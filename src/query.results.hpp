@@ -12,7 +12,9 @@ protected:
   int completedRows_;
   std::vector<QueryResultColumn*> queryResultColumns_;
 public:
-  virtual ~QueryResults();  
+  QueryResults();
+  virtual ~QueryResults();
+  virtual void getStatus() const = 0;
   virtual bool valid() const = 0;
   virtual int nrow() const = 0;
   virtual int ncol() const = 0;

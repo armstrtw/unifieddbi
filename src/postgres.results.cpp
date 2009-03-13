@@ -1,27 +1,44 @@
 #include <vector>
 #include <string>
+#include <iostream>
 #include <libpq-fe.h>
 #include <Rinternals.h>
 
 #include "postgres.results.hpp"
 #include "postgres.result.column.hpp"
 
+using std::cout;
+using std::endl;
 
-PostgresResults::PostgresResults(const PGresult *res) : res_(res) {
-  if(PQresultStatus(res) == PGRES_TUPLES_OK) {
-    void initColumns();
-  }
+PostgresResults::PostgresResults() {
+    cout << "bs constructor" << endl;
 }
-
-void PostgresResults::initColumns() {
-  const int ncols = ncol();
-  for(int i = 0; i < ncols; i++) {
-    queryResultColumns_.push_back(PostgresResultColumn::createPostgresColumn(res_, i));
-  }
+PostgresResults::PostgresResults(const PGresult *res) : QueryResults(), res_(res) {
+  cout << "2 constructor" << endl;
+  initColumns();
+}
+PostgresResults::PostgresResults(PGresult *res) : QueryResults(), res_(res) {
+  cout << "3 constructor" << endl;
+  initColumns();
 }
 
 PostgresResults::~PostgresResults() {
+  cout << "PostgresResults::~PostgresResults" << endl;
   PQclear(const_cast<PGresult*>(res_));
+}
+
+void PostgresResults::getStatus() const {
+  cout << "status: " << PQresStatus(PQresultStatus(res_)) << endl;
+  cout << "error msg: " << PQresultErrorMessage(res_) << endl;
+}
+
+void PostgresResults::initColumns() {
+  cout << "initColumns being called " << endl;
+  const int ncols = ncol();
+  for(int i = 0; i < ncols; i++) {
+    cout << "create col: " << i << endl;
+    queryResultColumns_.push_back(PostgresResultColumn::createPostgresColumn(res_, i));
+  }
 }
 
 bool PostgresResults::valid() const {

@@ -1,4 +1,11 @@
+#include <iostream>
 #include "query.results.hpp"
+
+using std::cout;
+using std::endl;
+
+QueryResults::QueryResults():
+  completedRows_(0) {}
 
 QueryResults::~QueryResults() {
   for(std::vector<QueryResultColumn*>::iterator iter = queryResultColumns_.begin(); iter != queryResultColumns_.end(); iter++) {
@@ -15,6 +22,7 @@ SEXP QueryResults::allocSEXP(const R_len_t nrows) const {
   PROTECT(ans = allocVector(VECSXP, ncols));
   //for(std::vector<QueryResultColumn*>::iterator iter = queryResultColumns_.begin(); iter != queryResultColumns_.end(); iter++) {
   for(R_len_t i = 0; i < ncols; i++) {
+    cout << "colpointer: " << queryResultColumns_[i] << endl;
     SET_VECTOR_ELT(ans,i,queryResultColumns_[i]->allocateSEXP(nrows));
   }
   UNPROTECT(1);
