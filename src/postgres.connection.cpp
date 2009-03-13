@@ -62,10 +62,12 @@ void PostgresConnection::disConnect() {
 
 bool PostgresConnection::commit() {
   // does nothing on Postgres
+  return true;
 }
 
 bool PostgresConnection::rollback() {
   // does nothing on Postgres
+  return false;
 }
 
 SEXP PostgresConnection::listTables() {
@@ -77,7 +79,7 @@ SEXP PostgresConnection::listTables() {
   const char* query = "select tablename from pg_tables where schemaname !='information_schema' and schemaname !='pg_catalog'";
   QueryResults* res = sendQuery(query);
   // FIXME: convert to string vector...
-  res->fetch(-1);
+  return res->fetch(-1);
 }
 
 SEXP PostgresConnection::readTable(const char* tableName) {
@@ -122,10 +124,12 @@ bool PostgresConnection::existsTable(const char* tableName) {
 
 bool PostgresConnection::removeTable(const char* tableName) {
   // FIXME: check for single word or schema.table ie no spaces?
-  std::stringstream query;
-  query <<  "drop table " << tableName;
-  PostgresResults* res = sendQuery(query.str().c_str());
+  //std::stringstream query;
+  //query <<  "drop table " << tableName;
+  //PostgresResults* res = sendQuery(query.str().c_str());
   // FIXME: send total rows affected
+  cerr << "not implemented yet" << endl;
+  return false;
 }
 
 PostgresResults* PostgresConnection::sendQuery(const char* query) {
