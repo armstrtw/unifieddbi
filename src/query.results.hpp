@@ -5,7 +5,7 @@
 #include <vector>
 #include <Rinternals.h>
 
-#include "query.result.column.hpp"
+#include "query.results.column.hpp"
 
 class QueryResults {
 protected:

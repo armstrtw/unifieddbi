@@ -1,5 +1,5 @@
-#ifndef QUERY_RESULT_COLUMN_HPP
-#define QUERY_RESULT_COLUMN_HPP
+#ifndef QUERY_RESULTS_COLUMN_HPP
+#define QUERY_RESULTS_COLUMN_HPP
 
 #include <Rinternals.h>
 
@@ -14,4 +14,4 @@ public:
   virtual void setValue(SEXP x, const R_len_t row) const = 0;
 };
 
-#endif // QUERY_RESULT_COLUMN_HPP
+#endif // QUERY_RESULTS_COLUMN_HPP

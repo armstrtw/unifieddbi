@@ -1,5 +1,5 @@
 #include <iostream>
-#include "postgres.result.column.hpp"
+#include "postgres.results.column.hpp"
 #include "postgres.oid.hpp"
 
 using std::cerr;

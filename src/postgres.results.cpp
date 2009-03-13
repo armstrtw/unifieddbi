@@ -5,7 +5,7 @@
 #include <Rinternals.h>
 
 #include "postgres.results.hpp"
-#include "postgres.result.column.hpp"
+#include "postgres.results.column.hpp"
 
 using std::cout;
 using std::endl;

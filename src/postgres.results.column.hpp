@@ -1,12 +1,12 @@
-#ifndef POSTGRES_RESULT_COLUMN_HPP
-#define POSTGRES_RESULT_COLUMN_HPP
+#ifndef POSTGRES_RESULTS_COLUMN_HPP
+#define POSTGRES_RESULTS_COLUMN_HPP
 
 #include <cstring>
 #include <cstdlib>
 #include <libpq-fe.h>
 #include <Rinternals.h>
 
-#include "query.result.column.hpp"
+#include "query.results.column.hpp"
 
 class PostgresResultColumn : public QueryResultColumn {
 protected:
@@ -77,4 +77,4 @@ public:
 //   }
 // };
 
-#endif //POSTGRES_RESULT_COLUMN_HPP
+#endif //POSTGRES_RESULTS_COLUMN_HPP
