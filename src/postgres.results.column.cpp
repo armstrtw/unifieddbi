@@ -108,3 +108,39 @@ void text_char::setValue(SEXP x, const R_len_t row) const {
     SET_STRING_ELT(x,row,mkChar(getValue(row)));
   }
 }
+
+TIMESTAMPOID_char::TIMESTAMPOID_char(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP TIMESTAMPOID_char::allocateSEXP(const R_len_t nrows) const {
+  SEXP ans;
+  PROTECT(ans = allocVector(REALSXP, nrows));
+
+  // create and add dates class to dates object
+  SEXP r_dates_class;
+  PROTECT(r_dates_class = allocVector(STRSXP, 2));
+  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
+  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
+  classgets(ans, r_dates_class);
+  UNPROTECT(2); // ans, r_dates_class
+  return ans;
+}
+
+void TIMESTAMPOID_char::setValue(SEXP x, const R_len_t row) const {
+  struct tm tm_date;
+  char* milis_char;
+  double milis = 0;
+  double seconds;
+ if(isNullValue(row)) {
+    REAL(x)[row] = NA_REAL;
+  } else {
+    memset(&tm_date, '\0', sizeof(struct tm));
+    milis_char = strptime(getValue(row),"%Y-%m-%d %H:%M:%S",&tm_date);
+    tm_date.tm_isdst = -1;
+    seconds = static_cast<double>(mktime(&tm_date));
+    if(milis_char) {
+      milis = atof(milis_char);
+    }
+    REAL(x)[row] = seconds + milis;
+  }
+}

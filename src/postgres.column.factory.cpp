@@ -10,6 +10,7 @@ using std::endl;
 PostgresColumnFactory::PostgresColumnFactory(const PGresult *res): res_(res) {}
 
 PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
+  //cout << "OID number: " << PQftype(res_,i) << endl;
   switch(static_cast<pg_oidT>(PQftype(res_,i))) {
   case INT4OID:
   case INT8OID:
@@ -22,6 +23,8 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
     return new date_char(res_, i);
   case TEXTOID:
     return new text_char(res_, i);
+  case TIMESTAMPOID:
+    return new TIMESTAMPOID_char(res_, i);
   default:
     cerr << "conversion not supported using null conversion for column number: " << i << endl;
     return new defaultResultColumn(res_, i);
