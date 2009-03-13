@@ -62,8 +62,8 @@ SEXP dbConnect(SEXP dbType_sexp, SEXP connection_string_sexp) {
 }
 
 SEXP dbConnectWithParams(SEXP dbType_sexp, SEXP user_sexp, SEXP pass_sexp) {
-  const char* user = CHAR(STRING_PTR(user_sexp)[0]);
-  const char* pass = CHAR(STRING_PTR(pass_sexp)[0]);
+  // const char* user = CHAR(STRING_PTR(user_sexp)[0]);
+  // const char* pass = CHAR(STRING_PTR(pass_sexp)[0]);
   /* not implemented */
   cerr << "not implemented yet." << endl;
   return R_NilValue;
