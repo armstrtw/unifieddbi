@@ -19,14 +19,13 @@ public:
   const char* getName() const;
   virtual SEXP allocateSEXP(const R_len_t nrows) const = 0;
   virtual void setValue(SEXP x, const R_len_t row) const = 0;
-  static PostgresResultColumn* createPostgresColumn(const PGresult *res, const int position);
 };
 
 // use this one when we can't find or haven't implemented
 // a postgres OID type
 class defaultResultColumn : public PostgresResultColumn {
   defaultResultColumn(const PGresult *res, const int position);
-  friend class PostgresResultColumn;
+  friend class PostgresColumnFactory;
 public:
   SEXP allocateSEXP(const R_len_t nrows) const;
   void setValue(SEXP x, const R_len_t row) const;
@@ -38,7 +37,7 @@ public:
 // FLOAT8OID
 class float_char : public PostgresResultColumn {
   float_char(const PGresult *res, const int position);
-  friend class PostgresResultColumn;
+  friend class PostgresColumnFactory;
 public:
   SEXP allocateSEXP(const R_len_t nrows) const;
   void setValue(SEXP x, const R_len_t row) const;
@@ -49,7 +48,7 @@ public:
 // INT2OID
 class int_char : public PostgresResultColumn {
   int_char(const PGresult *res, const int position);
-  friend class PostgresResultColumn;
+  friend class PostgresColumnFactory;
 public:
   SEXP allocateSEXP(const R_len_t nrows) const;
   void setValue(SEXP x, const R_len_t row) const;
@@ -59,7 +58,7 @@ public:
 // class BOOLOID_char : public PostgresResultColumn {
 //   BOOLOID_char(const PGresult *res, const int position):
 //     PostgresResultColumn(res,position) {}
-//   friend class PostgresResultColumn;
+//   friend class PostgresColumnFactory;
 // public: 
 //   SEXP allocateSEXP(const R_len_t nrows) {
 //     return allocVector(LGLSXP, nrows);

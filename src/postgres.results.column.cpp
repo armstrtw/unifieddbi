@@ -1,6 +1,5 @@
 #include <iostream>
 #include "postgres.results.column.hpp"
-#include "postgres.oid.hpp"
 
 using std::cerr;
 using std::endl;
@@ -22,22 +21,6 @@ const char* PostgresResultColumn::getValue(const int row) const {
 const char* PostgresResultColumn::getName() const {
   return const_cast<const char*>(PQfname(res_,position_));
 }
-
-PostgresResultColumn* PostgresResultColumn::createPostgresColumn(const PGresult *res, const int position) {
-  switch(static_cast<pg_oidT>(PQftype(res,position))) {
-  case INT4OID:
-  case INT8OID:
-  case OIDOID:
-    return new int_char(res, position);
-  case FLOAT4OID:
-  case FLOAT8OID:
-    return new float_char(res, position);
-  default:
-    cerr << "conversion not supported using null conversion for column number: " << position << endl;
-    return new defaultResultColumn(res, position);
-  }
-}
-
 
 
 defaultResultColumn::defaultResultColumn(const PGresult *res, const int position):

@@ -6,6 +6,7 @@
 #include <Rinternals.h>
 
 #include "query.results.hpp"
+#include "postgres.results.column.hpp"
 
 using std::cout;
 using std::endl;
@@ -13,9 +14,7 @@ using std::endl;
 class PostgresResults : public QueryResults {
 private:
   const PGresult *res_;
-  void initColumns();
 public:
-  PostgresResults();
   PostgresResults(const PGresult *res);
   PostgresResults(PGresult *res);
   ~PostgresResults();

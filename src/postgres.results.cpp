@@ -6,18 +6,13 @@
 
 #include "postgres.results.hpp"
 #include "postgres.results.column.hpp"
+#include "postgres.column.factory.hpp"
 
 using std::cout;
 using std::endl;
 
-PostgresResults::PostgresResults(const PGresult *res) : QueryResults(), res_(res) {
+PostgresResults::PostgresResults(const PGresult *res) : QueryResults(new PostgresColumnFactory(res)), res_(res) {
   cout << "PostgresResults::PostgresResults(const PGresult *res)" << endl;
-  initColumns();
-}
-
-PostgresResults::PostgresResults(PGresult *res) : QueryResults(), res_(res) {
-  cout << "PostgresResults::PostgresResults(PGresult *res)" << endl;
-  initColumns();
 }
 
 PostgresResults::~PostgresResults() {
@@ -30,13 +25,6 @@ void PostgresResults::getStatus() const {
   const char* err = PQresultErrorMessage(res_);
   if(err) {
     cout << "error msg: " << err << endl;
-  }
-}
-
-void PostgresResults::initColumns() {
-  const int ncols = ncol();
-  for(int i = 0; i < ncols; i++) {
-    queryResultColumns_.push_back(PostgresResultColumn::createPostgresColumn(res_, i));
   }
 }
 

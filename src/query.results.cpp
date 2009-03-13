@@ -4,10 +4,12 @@
 using std::cout;
 using std::endl;
 
-QueryResults::QueryResults():
-  completedRows_(0) {}
+QueryResults::QueryResults(ColumnFactory* columnFactory): columnFactory_(columnFactory), completedRows_(0) {
+  columnFactory_->init(queryResultColumns_);
+}
 
 QueryResults::~QueryResults() {
+  delete columnFactory_;
   for(std::vector<QueryResultColumn*>::iterator iter = queryResultColumns_.begin(); iter != queryResultColumns_.end(); iter++) {
     delete *iter;
   }
@@ -59,4 +61,8 @@ void QueryResults::getColnames(std::vector<std::string>& ans) const {
   for(R_len_t i = 0; i < ncol(); i++) {
     ans.push_back(queryResultColumns_[i]->getName());
   }
+}
+
+const int QueryResults::ncol() const {
+  return static_cast<const int>(queryResultColumns_.size());
 }
