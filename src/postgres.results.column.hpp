@@ -55,6 +55,25 @@ public:
 };
 
 
+// DATEOID
+class date_char : public PostgresResultColumn {
+  date_char(const PGresult *res, const int position);
+  friend class PostgresColumnFactory;
+public:
+  SEXP allocateSEXP(const R_len_t nrows) const;
+  void setValue(SEXP x, const R_len_t row) const;
+};
+
+// TEXTOID
+class text_char : public PostgresResultColumn {
+  text_char(const PGresult *res, const int position);
+  friend class PostgresColumnFactory;
+public:
+  SEXP allocateSEXP(const R_len_t nrows) const;
+  void setValue(SEXP x, const R_len_t row) const;
+};
+
+
 // class BOOLOID_char : public PostgresResultColumn {
 //   BOOLOID_char(const PGresult *res, const int position):
 //     PostgresResultColumn(res,position) {}

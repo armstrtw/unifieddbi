@@ -1,6 +1,8 @@
 #include <iostream>
+#include <ctime>
 #include "postgres.results.column.hpp"
 
+using std::cout;
 using std::cerr;
 using std::endl;
 
@@ -62,3 +64,47 @@ void int_char::setValue(SEXP x, const R_len_t row) const {
   }
 }
 
+
+date_char::date_char(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP date_char::allocateSEXP(const R_len_t nrows) const {
+  SEXP ans;
+  PROTECT(ans = allocVector(REALSXP, nrows));
+
+  // create and add dates class to dates object
+  SEXP r_dates_class;
+  PROTECT(r_dates_class = allocVector(STRSXP, 2));
+  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
+  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
+  classgets(ans, r_dates_class);
+  UNPROTECT(2); // ans, r_dates_class
+  return ans;
+}
+
+void date_char::setValue(SEXP x, const R_len_t row) const {
+  struct tm tm_date;
+  if(isNullValue(row)) {
+    REAL(x)[row] = NA_REAL;
+  } else {
+    memset(&tm_date, '\0', sizeof(struct tm));
+    strptime(getValue(row),"%Y-%m-%d",&tm_date);
+    tm_date.tm_isdst = -1;
+    REAL(x)[row] = static_cast<double>(mktime(&tm_date));
+  }
+}
+
+text_char::text_char(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP text_char::allocateSEXP(const R_len_t nrows) const {
+  return allocVector(STRSXP, nrows);
+}
+
+void text_char::setValue(SEXP x, const R_len_t row) const {
+  if(isNullValue(row)) {
+    SET_STRING_ELT(x,row,NA_STRING);
+  } else {
+    SET_STRING_ELT(x,row,mkChar(getValue(row)));
+  }
+}

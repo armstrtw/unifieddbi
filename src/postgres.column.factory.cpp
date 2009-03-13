@@ -18,6 +18,10 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
   case FLOAT4OID:
   case FLOAT8OID:
     return new float_char(res_, i);
+  case DATEOID:
+    return new date_char(res_, i);
+  case TEXTOID:
+    return new text_char(res_, i);
   default:
     cerr << "conversion not supported using null conversion for column number: " << i << endl;
     return new defaultResultColumn(res_, i);

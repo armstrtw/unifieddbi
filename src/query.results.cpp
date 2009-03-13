@@ -1,5 +1,6 @@
 #include <iostream>
 #include "query.results.hpp"
+#include "conversion.utils.hpp"
 
 using std::cout;
 using std::endl;
@@ -18,7 +19,7 @@ QueryResults::~QueryResults() {
 // use nrows as parameter b/c user might not want full
 // results set of query i.e call to fetch(res, n = 100)
 SEXP QueryResults::allocSEXP(const R_len_t nrows) const {
-  SEXP ans;
+  SEXP ans, rownames, ans_class;
   const int ncols = ncol();
 
   PROTECT(ans = allocVector(VECSXP, ncols));
