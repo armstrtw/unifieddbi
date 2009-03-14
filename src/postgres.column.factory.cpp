@@ -43,6 +43,8 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
     return new text_char(res_, i);
   case TIMESTAMPOID:
     return new TIMESTAMPOID_char(res_, i);
+  case BOOLOID:
+    return new BOOLOID_char(res_, i);
   default:
     cerr << "conversion not supported using null conversion for column number: " << i << endl;
     return new defaultResultColumn(res_, i);

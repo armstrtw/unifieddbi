@@ -100,26 +100,13 @@ namespace postgres {
     void setValue(SEXP x, const R_len_t row) const;
   };
 
-  // class BOOLOID_char : public PostgresResultColumn {
-  //   BOOLOID_char(const PGresult *res, const int position):
-  //     PostgresResultColumn(res,position) {}
-  //   friend class PostgresColumnFactory;
-  // public: 
-  //   SEXP allocateSEXP(const R_len_t nrows) {
-  //     return allocVector(LGLSXP, nrows);
-  //   }
-  //   void setValue(SEXP x, const R_len_t row) {
-  //     if(isNull(row)) {
-  //       LOGICAL(x)[row] = NA_LOGICAL;
-  //     } else {
-  //       if(strcmp(getValue(row),"t") == 0) {
-  //         LOGICAL(x)[row] = true;
-  //       } else {
-  //         LOGICAL(x)[row] = false;
-  //       }
-  //     }
-  //   }
-  // };
+  class BOOLOID_char : public PostgresResultColumn {
+    BOOLOID_char(const PGresult *res, const int position);
+    friend class PostgresColumnFactory;
+  public:
+    SEXP allocateSEXP(const R_len_t nrows) const;
+    void setValue(SEXP x, const R_len_t row) const;
+  };
 
 } // namespace postgres
 #endif //POSTGRES_RESULTS_COLUMN_HPP

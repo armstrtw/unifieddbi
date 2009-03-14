@@ -163,3 +163,22 @@ void TIMESTAMPOID_char::setValue(SEXP x, const R_len_t row) const {
     REAL(x)[row] = seconds + milis;
   }
 }
+
+BOOLOID_char::BOOLOID_char(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP BOOLOID_char::allocateSEXP(const R_len_t nrows) const {
+  return allocVector(LGLSXP, nrows);
+}
+
+void BOOLOID_char::setValue(SEXP x, const R_len_t row) const {
+  if(isNullValue(row)) {
+    INTEGER(x)[row] = NA_LOGICAL;
+  } else {
+    if(strcmp(getValue(row),"t") == 0) {
+      LOGICAL(x)[row] = true;
+    } else {
+      LOGICAL(x)[row] = false;
+    }
+  }
+}
