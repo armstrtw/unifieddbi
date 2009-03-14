@@ -1,0 +1,3 @@
+[submodule "src/RAbstraction"]
+	path = src/RAbstraction
+	url = git://github.com/armstrtw/rabstraction.git

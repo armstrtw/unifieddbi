@@ -16,11 +16,17 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+#include <vector>
+#include <string>
+#include <Rvector.hpp>
 #include "query.results.hpp"
 #include "conversion.utils.hpp"
 
 using std::cout;
 using std::endl;
+using std::vector;
+using std::string;
+using namespace RAbstraction;
 
 QueryResults::QueryResults(ColumnFactory* columnFactory): columnFactory_(columnFactory), completedRows_(0) {
   columnFactory_->init(queryResultColumns_);
@@ -36,26 +42,31 @@ QueryResults::~QueryResults() {
 // use nrows as parameter b/c user might not want full
 // results set of query i.e call to fetch(res, n = 100)
 SEXP QueryResults::allocSEXP(const R_len_t nrows) const {
-  SEXP ans, rownames, ans_class;
+  vector<string> colnames;
+  vector<string> rownames(nrows);
+
   const int ncols = ncol();
 
-  PROTECT(ans = allocVector(VECSXP, ncols));
+  RVector<VECSXP> ans(ncols);
+
   //for(std::vector<QueryResultColumn*>::iterator iter = queryResultColumns_.begin(); iter != queryResultColumns_.end(); iter++) {
   for(R_len_t i = 0; i < ncols; i++) {
-    SET_VECTOR_ELT(ans,i,queryResultColumns_[i]->allocateSEXP(nrows));
+    SET_VECTOR_ELT(ans.getSEXP(),i,queryResultColumns_[i]->allocateSEXP(nrows));
   }
-  UNPROTECT(1);
-  return ans;
+  ans.setClass("data.frame");
+  getColnames(colnames);
+  ans.setNames(colnames.begin(),colnames.end());
+  for(R_len_t i = 1; i <= nrows; i++) { rownames[i] = itos(i); }
+  ans.setAttribute("row.names",string2sexp(rownames.begin(),rownames.end()));
+  return ans.getSEXP();
 }
 
 
 SEXP QueryResults::fetch(const int fetch_rows) {
-  SEXP ans;
-
   //ignore fetch_rows for now
   const int ncols = ncol();
   const int nrows = nrow();
-  PROTECT(ans = allocSEXP(nrows));
+  RVector<VECSXP> ans(allocSEXP(nrows));
 
   // pull values
   // this is mean to be as flexible as possible
@@ -64,12 +75,10 @@ SEXP QueryResults::fetch(const int fetch_rows) {
   // on the tuple value
   for(int row = 0; row < nrows; row++) {
     for(int col = 0; col < ncols; col++) {
-      queryResultColumns_[col]->setValue(VECTOR_ELT(ans,col), row);
+      queryResultColumns_[col]->setValue(VECTOR_ELT(ans.getSEXP(),col), row);
     }
   }
-  // set colnames, other attributes...
-  UNPROTECT(1);
-  return ans;
+  return ans.getSEXP();
 }
 
 void QueryResults::getColnames(std::vector<std::string>& ans) const {

@@ -1,2 +1,2 @@
-PKG_CXXFLAGS = -Wall -I/usr/include/postgresql
+PKG_CXXFLAGS = -Wall -I./RAbstraction -I/usr/include/postgresql
 PKG_LIBS     = -lpq
