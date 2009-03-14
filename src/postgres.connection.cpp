@@ -28,6 +28,7 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using namespace postgres;
 
 PostgresConnection::~PostgresConnection() {
   cout << "PostgresConnection::~PostgresConnection()" << endl;

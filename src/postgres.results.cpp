@@ -28,6 +28,8 @@
 using std::cout;
 using std::endl;
 
+using namespace postgres;
+
 PostgresResults::PostgresResults(const PGresult *res) : QueryResults(new PostgresColumnFactory(res)), res_(res) {
   cout << "PostgresResults::PostgresResults(const PGresult *res)" << endl;
 }

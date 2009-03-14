@@ -32,7 +32,7 @@ DatabaseConnection* DatabaseConnection::init(const char* dbType) {
   const string dbType_s(dbType);
 
   if(dbType_s == "POSTGRES" || dbType_s == "PostgreSQL") {
-    return new PostgresConnection();
+    return new postgres::PostgresConnection();
   } else {
     throw DatabaseConnection::DriverNotSupported(dbType_s.c_str());
   }

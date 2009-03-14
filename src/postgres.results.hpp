@@ -25,21 +25,21 @@
 #include "query.results.hpp"
 #include "postgres.results.column.hpp"
 
-using std::cout;
-using std::endl;
+namespace postgres {
 
-class PostgresResults : public QueryResults {
-private:
-  const PGresult *res_;
-public:
-  PostgresResults(const PGresult *res);
-  PostgresResults(PGresult *res);
-  ~PostgresResults();
-  void getStatus() const;
-  bool valid() const;
-  int nrow() const;
-  int ncol() const;
-  void getColnames(std::vector<std::string>& ans) const;
-};
+  class PostgresResults : public QueryResults {
+  private:
+    const PGresult *res_;
+  public:
+    PostgresResults(const PGresult *res);
+    PostgresResults(PGresult *res);
+    ~PostgresResults();
+    void getStatus() const;
+    bool valid() const;
+    int nrow() const;
+    int ncol() const;
+    void getColnames(std::vector<std::string>& ans) const;
+  };
 
+} // namespace postgres
 #endif // POSTGRES_RESULTS_HPP

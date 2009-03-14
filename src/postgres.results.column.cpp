@@ -23,6 +23,8 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+using namespace postgres;
+
 PostgresResultColumn::~PostgresResultColumn() {}
 
 PostgresResultColumn::PostgresResultColumn(const PGresult *res, const int position):
