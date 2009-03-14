@@ -47,4 +47,4 @@ namespace postgres {
     PostgresResults* sendQuery(const char* query);
   };
 } // namespace postgres
-#endif // POSTGRES_CONNECTION_HPP		\
+#endif // POSTGRES_CONNECTION_HPP

@@ -34,4 +34,4 @@ namespace postgres {
   };
 
 } // namespace postgres
-#endif // POSTGRES_COLUMN_FACTORY_HPP		\
+#endif // POSTGRES_COLUMN_FACTORY_HPP
