@@ -26,48 +26,38 @@ using std::cerr;
 using std::endl;
 
 static void connFinalizer(SEXP dbi_conn_sexp) {
-  if(!R_ExternalPtrAddr(dbi_conn_sexp)) {
-    return;
-  }
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
-
-  // call c++ destructor
-  delete conn;
-
-  R_ClearExternalPtr(dbi_conn_sexp);
+  if(conn) {
+    // call c++ destructor
+    delete conn;
+    R_ClearExternalPtr(dbi_conn_sexp);
+  }
 }
 
 static void queryResultsFinalizer(SEXP query_results_sexp) {
-  if(!R_ExternalPtrAddr(query_results_sexp)) {
-    return;
-  }
   QueryResults* query_results = reinterpret_cast<QueryResults*>(R_ExternalPtrAddr(query_results_sexp));
-
-  // call c++ destructor
-  delete query_results;
-  
-  R_ClearExternalPtr(query_results_sexp);
+  if(query_results) {
+    // call c++ destructor
+    delete query_results;
+    R_ClearExternalPtr(query_results_sexp);
+  }
 }
 
 SEXP dbClearResult(SEXP dbi_query_results_sexp) {
   SEXP ans;
   PROTECT(ans = allocVector(LGLSXP,1));
-
-  if(!R_ExternalPtrAddr(dbi_query_results_sexp)) {
-    LOGICAL(ans)[0] = static_cast<int>(false);
-    UNPROTECT(1);
-    return ans;
-  }
   QueryResults* query_results = reinterpret_cast<QueryResults*>(R_ExternalPtrAddr(dbi_query_results_sexp));
 
-  // call c++ destructor
-  delete query_results;
-  R_ClearExternalPtr(dbi_query_results_sexp);
+  if(query_results) {
+    // call c++ destructor
+    delete query_results;
+    R_ClearExternalPtr(dbi_query_results_sexp);
+    LOGICAL(ans)[0] = static_cast<int>(true);
+  } else {
+    LOGICAL(ans)[0] = static_cast<int>(false);
+  }
 
-  // success
-  LOGICAL(ans)[0] = static_cast<int>(true);
   UNPROTECT(1);
-
   return ans;
 }
 
