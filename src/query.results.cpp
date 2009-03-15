@@ -56,7 +56,7 @@ SEXP QueryResults::allocSEXP(const R_len_t nrows) const {
   ans.setClass("data.frame");
   getColnames(colnames);
   ans.setNames(colnames.begin(),colnames.end());
-  for(R_len_t i = 1; i <= nrows; i++) { rownames[i] = itos(i); }
+  for(R_len_t i = 0; i < nrows; i++) { rownames[i] = itos(i+1); }
   ans.setAttribute("row.names",string2sexp(rownames.begin(),rownames.end()));
   return ans.getSEXP();
 }
