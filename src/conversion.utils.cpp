@@ -28,12 +28,11 @@ string itos(const int i) {
   return s.str();
 }
 
-double ntohll(const uint64_t x) {
+uint64_t ntohll(const uint64_t x) {
 
   typedef union
   {
     uint64_t value;
-    double double_value;
     uint32_t word[2];
   } ieee_type;
 
@@ -45,5 +44,5 @@ double ntohll(const uint64_t x) {
   ieee_type ans;
   ans.word[0] = swap.word[1];
   ans.word[1] = swap.word[0];
-  return ans.double_value;
+  return ans.value;
 }

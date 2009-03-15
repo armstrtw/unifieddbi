@@ -108,5 +108,38 @@ namespace postgres {
     void setValue(SEXP x, const R_len_t row) const;
   };
 
+  class INT4OID_binary : public PostgresResultColumn {
+    INT4OID_binary(const PGresult *res, const int position);
+    friend class PostgresColumnFactory;
+  public:
+    SEXP allocateSEXP(const R_len_t nrows) const;
+    void setValue(SEXP x, const R_len_t row) const;
+  };
+
+  class DATEOID_binary : public PostgresResultColumn {
+    DATEOID_binary(const PGresult *res, const int position);
+    friend class PostgresColumnFactory;
+  public:
+    SEXP allocateSEXP(const R_len_t nrows) const;
+    void setValue(SEXP x, const R_len_t row) const;
+  };
+
+  class FLOAT8OID_binary : public PostgresResultColumn {
+    FLOAT8OID_binary(const PGresult *res, const int position);
+    friend class PostgresColumnFactory;
+  public:
+    SEXP allocateSEXP(const R_len_t nrows) const;
+    void setValue(SEXP x, const R_len_t row) const;
+  };
+
+  class BOOLOID_binary : public PostgresResultColumn {
+    BOOLOID_binary(const PGresult *res, const int position);
+    friend class PostgresColumnFactory;
+  public:
+    SEXP allocateSEXP(const R_len_t nrows) const;
+    void setValue(SEXP x, const R_len_t row) const;
+  };
+
+
 } // namespace postgres
 #endif //POSTGRES_RESULTS_COLUMN_HPP

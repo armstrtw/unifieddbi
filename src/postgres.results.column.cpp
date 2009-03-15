@@ -17,11 +17,19 @@
 
 #include <iostream>
 #include <ctime>
+#include <netinet/in.h>
+
+#include <boost/date_time/gregorian/gregorian_types.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/date_time/local_time/local_time_types.hpp>
+
 #include "postgres.results.column.hpp"
+#include "conversion.utils.hpp"
 
 using std::cout;
 using std::cerr;
 using std::endl;
+using namespace boost::gregorian;
 
 using namespace postgres;
 
@@ -180,5 +188,88 @@ void BOOLOID_char::setValue(SEXP x, const R_len_t row) const {
     } else {
       LOGICAL(x)[row] = false;
     }
+  }
+}
+
+INT4OID_binary::INT4OID_binary(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP INT4OID_binary::allocateSEXP(const R_len_t nrows) const {
+  return allocVector(INTSXP, nrows);
+}
+
+void INT4OID_binary::setValue(SEXP x, const R_len_t row) const {
+  if(isNullValue(row)) {
+    INTEGER(x)[row] = NA_INTEGER;
+  } else {
+    const char *from_pg = getValue(row);
+    const uint32_t swap = ntohl(*reinterpret_cast<const uint32_t*>(from_pg));
+    INTEGER(x)[row] = *reinterpret_cast<const int*>(&swap);
+  }
+}
+
+DATEOID_binary::DATEOID_binary(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP DATEOID_binary::allocateSEXP(const R_len_t nrows) const {
+  SEXP ans;
+  PROTECT(ans = allocVector(REALSXP, nrows));
+
+  // create and add dates class to dates object
+  SEXP r_dates_class;
+  PROTECT(r_dates_class = allocVector(STRSXP, 2));
+  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
+  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
+  classgets(ans, r_dates_class);
+  UNPROTECT(2); // ans, r_dates_class
+  return ans;
+}
+
+void DATEOID_binary::setValue(SEXP x, const R_len_t row) const {
+  const date pg_epoch(2000,Jan,1);
+  if(isNullValue(row)) {
+    REAL(x)[row] = NA_REAL;
+  } else {
+    const char *from_pg = getValue(row);
+    const uint32_t swap = ntohl(*reinterpret_cast<const int32_t*>(from_pg));
+    const int pg_jdate = *reinterpret_cast<const int*>(&swap);
+    date_duration dd(pg_jdate);
+    date ans = pg_epoch + dd;
+    struct tm tm_time = to_tm(ans);
+    tm_time.tm_isdst = -1;
+    REAL(x)[row] = static_cast<double>(mktime(&tm_time));
+  }
+}
+
+FLOAT8OID_binary::FLOAT8OID_binary(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP FLOAT8OID_binary::allocateSEXP(const R_len_t nrows) const {
+  return allocVector(REALSXP, nrows);
+}
+void FLOAT8OID_binary::setValue(SEXP x, const R_len_t row) const {
+  if(isNullValue(row)) {
+    REAL(x)[row] = NA_REAL;
+  } else {
+    const char *from_pg = getValue(row);
+    const uint64_t swap = ntohll(*reinterpret_cast<const uint64_t*>(from_pg));
+    REAL(x)[row] = *reinterpret_cast<const double*>(&swap);
+  }
+}
+
+
+BOOLOID_binary::BOOLOID_binary(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP BOOLOID_binary::allocateSEXP(const R_len_t nrows) const {
+  return allocVector(LGLSXP, nrows);
+}
+void BOOLOID_binary::setValue(SEXP x, const R_len_t row) const {
+  if(isNullValue(row)) {
+    LOGICAL(x)[row] = NA_LOGICAL;
+  } else {
+    const char *from_pg = getValue(row);
+    const uint32_t swap = ntohl(*reinterpret_cast<const uint32_t*>(from_pg));
+    LOGICAL(x)[row] = *reinterpret_cast<const int*>(&swap);
   }
 }

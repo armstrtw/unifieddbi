@@ -29,25 +29,48 @@ PostgresColumnFactory::PostgresColumnFactory(const PGresult *res): res_(res) {}
 
 PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
   //cout << "OID number: " << PQftype(res_,i) << endl;
-  switch(static_cast<pg_oidT>(PQftype(res_,i))) {
-  case INT4OID:
-  case INT8OID:
-  case OIDOID:
-    return new int_char(res_, i);
-  case FLOAT4OID:
-  case FLOAT8OID:
-    return new float_char(res_, i);
-  case DATEOID:
-    return new date_char(res_, i);
-  case TEXTOID:
-    return new text_char(res_, i);
-  case TIMESTAMPOID:
-    return new TIMESTAMPOID_char(res_, i);
-  case BOOLOID:
-    return new BOOLOID_char(res_, i);
-  default:
-    cerr << "conversion not supported using null conversion for column number: " << i << endl;
-    return new defaultResultColumn(res_, i);
+  
+  // first switch is for text representation
+  if(PQfformat(res_,i) == 0) {
+    switch(static_cast<pg_oidT>(PQftype(res_,i))) {
+    case INT4OID:
+    case INT8OID:
+    case OIDOID:
+      return new int_char(res_, i);
+    case FLOAT4OID:
+    case FLOAT8OID:
+      return new float_char(res_, i);
+    case DATEOID:
+      return new date_char(res_, i);
+    case VARCHAROID:
+    case TEXTOID:
+    case CHAROID:
+      return new text_char(res_, i);
+    case TIMESTAMPOID:
+      return new TIMESTAMPOID_char(res_, i);
+    case BOOLOID:
+      return new BOOLOID_char(res_, i);
+    default:
+      cerr << "conversion not supported using null conversion for column number: " << i << endl;
+      return new defaultResultColumn(res_, i);
+    }
+  } else {
+    switch(static_cast<pg_oidT>(PQftype(res_,i))) {
+    case INT4OID:
+      return new INT4OID_binary(res_,i);
+    case DATEOID:
+      return new DATEOID_binary(res_,i);
+    case FLOAT8OID:
+      return new FLOAT8OID_binary(res_,i);
+    case BOOLOID:
+      return new BOOLOID_binary(res_,i);
+    case VARCHAROID:
+    case TEXTOID:
+      return new text_char(res_, i);
+    default:
+      cerr << "conversion not supported using null conversion for column number: " << i << endl;
+      return new defaultResultColumn(res_, i);
+    }
   }
 }
 

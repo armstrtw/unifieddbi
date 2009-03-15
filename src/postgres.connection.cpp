@@ -152,7 +152,8 @@ bool PostgresConnection::removeTable(const char* tableName) {
 
 PostgresResults* PostgresConnection::sendQuery(const char* query) {
   if(query && connectionValid()) {
-    return new PostgresResults(static_cast<const PGresult*>(PQexec(conn_,query)));
+    //return new PostgresResults(static_cast<const PGresult*>(PQexec(conn_,query)));
+    return new PostgresResults(static_cast<const PGresult*>(PQexecParams(conn_,query,0,NULL,NULL,NULL,NULL,1)));
   }
   cerr << "bad connection to database" << endl;
   return static_cast<PostgresResults*>(NULL);
