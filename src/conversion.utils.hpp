@@ -21,5 +21,6 @@
 #include <string>
 
 std::string itos(const int i);
+double ntohll(const uint64_t x);
 
 #endif // CONVERSION_UTILS_HPP
