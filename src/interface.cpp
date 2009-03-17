@@ -61,6 +61,22 @@ SEXP dbClearResult(SEXP dbi_query_results_sexp) {
   return ans;
 }
 
+SEXP dbDisconnect(SEXP dbi_conn_sexp) {
+  SEXP ans;
+  PROTECT(ans = allocVector(LGLSXP,1));
+  cout << "closing connection" << endl;
+  DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
+  if(conn) {
+    // call c++ destructor
+    delete conn;
+    R_ClearExternalPtr(dbi_conn_sexp);
+    LOGICAL(ans)[0] = static_cast<int>(true);
+  }
+  LOGICAL(ans)[0] = static_cast<int>(false);
+  return ans;
+}
+
+
 SEXP dbConnect(SEXP dbType_sexp,
 	       SEXP connection_string_sexp,
 	       SEXP user_sexp,

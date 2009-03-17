@@ -34,7 +34,10 @@ fetch <- function(dbi.query.results, nrows= -1L) {
     .Call("dbfetch", dbi.query.results, as.integer(nrows), PACKAGE="unifiedDBI")
 }
 
-
 dbClearResult <- function(dbi.query.results) {
     .Call("dbClearResult", dbi.query.results, PACKAGE="unifiedDBI")
+}
+
+dbDisconnect <- function(dbi.conn) {
+    .Call("dbClearResult", dbi.conn, PACKAGE="unifiedDBI")
 }

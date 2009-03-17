@@ -5,8 +5,8 @@ export(
        dbConnect,
        dbSendQuery,
        fetch,
-       dbClearResult
-       ##dbDisconnect,
+       dbClearResult,
+       dbDisconnect
        ##dbCommit,
        ##dbRollback
        )

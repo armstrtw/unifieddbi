@@ -24,6 +24,7 @@ static void connFinalizer(SEXP dbi_conn_sexp);
 static void queryResultsFinalizer(SEXP query_results_sexp);
 
 extern "C" {
+  SEXP dbDisconnect(SEXP dbi_conn_sexp);
   SEXP dbConnect(SEXP dbType_sexp,
 		 SEXP connection_string_sexp,
 		 SEXP user_sexp,
