@@ -111,14 +111,6 @@ SEXP dbConnect(SEXP dbType_sexp,
   return dbi_conn_sexp;
 }
 
-SEXP dbConnectWithParams(SEXP dbType_sexp, SEXP user_sexp, SEXP pass_sexp) {
-  // const char* user = CHAR(STRING_PTR(user_sexp)[0]);
-  // const char* pass = CHAR(STRING_PTR(pass_sexp)[0]);
-  /* not implemented */
-  cerr << "not implemented yet." << endl;
-  return R_NilValue;
-}
-
 SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp) {
   SEXP dbi_query_results_sexp;
   if(!R_ExternalPtrAddr(dbi_conn_sexp)) {
