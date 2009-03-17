@@ -15,6 +15,9 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>. ##
 ###########################################################################
 
+## compatibility function to forward dbyType to dbConnect
+## as in with R/S DBI:
+## conn <- dbConnect(dbDriver("PostgreSQL"), user="the.user", dbname="the.dbname")
 dbDriver <- function(dbType) {
     dbType
 }
