@@ -113,11 +113,12 @@ SEXP dbConnect(SEXP dbType_sexp,
 
 SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp) {
   SEXP dbi_query_results_sexp;
-  if(!R_ExternalPtrAddr(dbi_conn_sexp)) {
+  DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
+  if(!conn) {
+    // throw bad_connection_object
     return R_NilValue;
   }
   const char* qry = CHAR(STRING_PTR(qry_sexp)[0]);
-  DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
   QueryResults* query_results = conn->sendQuery(qry);
   //query_results->getStatus();
 
