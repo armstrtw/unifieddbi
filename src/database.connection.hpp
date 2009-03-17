@@ -30,6 +30,13 @@ class DatabaseConnection {
 public:
   virtual ~DatabaseConnection() {}
   virtual void connect(const char* connectionString) = 0;
+  virtual void connect(const char* user,
+		       const char* pass,
+		       const char* host,
+		       const char* port,
+		       const char* tty,
+		       const char* dbName,
+		       const char* options) = 0;
 
   virtual void disConnect() = 0;
   virtual bool commit() = 0;

@@ -36,6 +36,13 @@ namespace postgres {
     bool connectionValid();
   public:
     void connect(const char* connectionString);
+    void connect(const char* user,
+		 const char* pass,
+		 const char* host,
+		 const char* port,
+		 const char* tty,
+		 const char* dbName,
+		 const char* options);
     void disConnect();
     bool commit();
     bool rollback();

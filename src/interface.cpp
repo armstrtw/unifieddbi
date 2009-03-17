@@ -61,11 +61,27 @@ SEXP dbClearResult(SEXP dbi_query_results_sexp) {
   return ans;
 }
 
-SEXP dbConnect(SEXP dbType_sexp, SEXP connection_string_sexp) {
+SEXP dbConnect(SEXP dbType_sexp,
+	       SEXP connection_string_sexp,
+	       SEXP user_sexp,
+	       SEXP pass_sexp,
+	       SEXP host_sexp,
+	       SEXP port_sexp,
+	       SEXP tty_sexp,
+	       SEXP dbName_sexp,
+	       SEXP options_sexp) {
+
   SEXP dbi_conn_sexp;
   DatabaseConnection* conn = NULL;
   const char* dbType = CHAR(STRING_PTR(dbType_sexp)[0]);
-  const char* connection_string = CHAR(STRING_PTR(connection_string_sexp)[0]);
+  const char* connection_string = (connection_string_sexp == R_NilValue) ? NULL : CHAR(STRING_PTR(connection_string_sexp)[0]);
+  const char* user = (user_sexp == R_NilValue) ? NULL : CHAR(STRING_PTR(user_sexp)[0]);
+  const char* pass = (pass_sexp == R_NilValue) ? NULL : CHAR(STRING_PTR(pass_sexp)[0]);
+  const char* host = (host_sexp == R_NilValue) ? NULL : CHAR(STRING_PTR(host_sexp)[0]);
+  const char* port = (port_sexp == R_NilValue) ? NULL : CHAR(STRING_PTR(port_sexp)[0]);
+  const char* tty = (tty_sexp == R_NilValue) ? NULL : CHAR(STRING_PTR(tty_sexp)[0]);
+  const char* dbName = (dbName_sexp == R_NilValue) ? NULL : CHAR(STRING_PTR(dbName_sexp)[0]);
+  const char* options = (options_sexp == R_NilValue) ? NULL : CHAR(STRING_PTR(options_sexp)[0]);
 
   // this test is to check whether the package was compiled with support
   // for this specific dbType
@@ -78,7 +94,12 @@ SEXP dbConnect(SEXP dbType_sexp, SEXP connection_string_sexp) {
 
   // if we succeed then return a wrapped connection, otherwise return null
   try {
-    conn->connect(connection_string);
+    // if user provides connection_string, then use it, otherwise try traditional args
+    if(connection_string) {
+      conn->connect(connection_string);
+    } else {
+      conn->connect(user,pass,host,port,tty,dbName,options);
+    }
   } catch(DatabaseConnection::BadDatabaseConnection& e) {
     cerr << e.what() << endl;
     return R_NilValue;

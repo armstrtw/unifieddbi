@@ -19,8 +19,8 @@ dbDriver <- function(dbType) {
     dbType
 }
 
-dbConnect <- function(dbType, connection_string) {
-    .Call("dbConnect",dbType, connection_string, PACKAGE="unifiedDBI")
+dbConnect <- function(dbType, connection.string=NULL, user=NULL, pass=NULL, host=NULL, port=NULL, tty=NULL, dbname=NULL, options=NULL) {
+  .Call("dbConnect", dbType, connection.string, user, pass, host, port, tty, dbname, options, PACKAGE="unifiedDBI")
 }
 
 dbSendQuery <- function(dbi_conn,qry) {

@@ -43,18 +43,16 @@ void PostgresConnection::connect(const char* connectionString) {
   verifyConnection();
 }
 
-// not implemented yet
-////////////////////////////////////////////////////
-// void PostgresConnection::connect(const char* user,
-//                                  const char* pass,
-//                                  const char* host,
-//                                  const char* port,
-//                                  const char* tty,
-//                                  const char* dbName,
-//                                  const char* options) {
-//   conn_ = PQsetdbLogin(host,port,options,tty,databaseName,user,pass);
-//   verifyConnection();
-// }
+void PostgresConnection::connect(const char* user,
+                                 const char* pass,
+                                 const char* host,
+                                 const char* port,
+                                 const char* tty,
+                                 const char* dbName,
+                                 const char* options) {
+  conn_ = PQsetdbLogin(host,port,options,tty,dbName,user,pass);
+  verifyConnection();
+}
 
 bool PostgresConnection::connectionValid() {
   if(conn_ && PQstatus(conn_) == CONNECTION_OK) {
