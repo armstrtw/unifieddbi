@@ -23,15 +23,15 @@ dbConnect <- function(dbType, connection.string=NULL, user=NULL, pass=NULL, host
   .Call("dbConnect", dbType, connection.string, user, pass, host, port, tty, dbname, options, PACKAGE="unifiedDBI")
 }
 
-dbSendQuery <- function(dbi_conn,qry) {
-    .Call("dbSendQuery", dbi_conn, qry, PACKAGE="unifiedDBI")
+dbSendQuery <- function(dbi.conn,qry) {
+    .Call("dbSendQuery", dbi.conn, qry, PACKAGE="unifiedDBI")
 }
 
-fetch <- function(dbi_query_results, nrows= -1L) {
-    .Call("dbfetch", dbi_query_results, as.integer(nrows), PACKAGE="unifiedDBI")
+fetch <- function(dbi.query.results, nrows= -1L) {
+    .Call("dbfetch", dbi.query.results, as.integer(nrows), PACKAGE="unifiedDBI")
 }
 
 
-dbClearResult <- function(dbi_query_results) {
-    .Call("dbClearResult", dbi_query_results, PACKAGE="unifiedDBI")
+dbClearResult <- function(dbi.query.results) {
+    .Call("dbClearResult", dbi.query.results, PACKAGE="unifiedDBI")
 }
