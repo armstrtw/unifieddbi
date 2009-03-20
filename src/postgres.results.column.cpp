@@ -269,7 +269,8 @@ void BOOLOID_binary::setValue(SEXP x, const R_len_t row) const {
     LOGICAL(x)[row] = NA_LOGICAL;
   } else {
     const char *from_pg = getValue(row);
-    const uint32_t swap = ntohl(*reinterpret_cast<const uint32_t*>(from_pg));
-    LOGICAL(x)[row] = *reinterpret_cast<const int*>(&swap);
+    // does network order mater if we are just testing for any bits != 0
+    // possibly use c++ bitset, if we really need to deal w/ bit order
+    LOGICAL(x)[row] = (*from_pg) ? 1 : 0;
   }
 }
