@@ -18,6 +18,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <string>
 #include <Rinternals.h>
 
 bool hasRownames(SEXP x);
@@ -26,5 +27,6 @@ SEXP getColnames(SEXP x);
 bool posixHasTimes(SEXP x);
 std::string posix2string(const double x);
 std::string posixlt2string(const int year, const int mon, const int day);
+void cleanString(std::string& str, const std::string& badString, const std::string& replaceString);
 
 #endif // UTILS_HPP

@@ -27,7 +27,7 @@ protected:
   SEXP sexp_;
 public:
   Robject(SEXP x) : sexp_(x) {}
-  ~Robject() {}
+  virtual ~Robject() {}
   static Robject* factory(SEXP x);
   virtual int writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames) = 0;
 };

@@ -63,3 +63,12 @@ string posixlt2string(const int year, const int mon, const int day) {
   date ans(year, mon, day);
   return to_iso_extended_string(ans);
 }
+
+
+void cleanString(string& str, const string& badString, const string& replaceString) {
+  string::size_type pos = 0;
+  while ((pos = str.find(badString, pos)) != string::npos ) {
+    str.replace( pos, badString.size(), replaceString );
+    pos++;
+  }
+}

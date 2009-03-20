@@ -179,7 +179,10 @@ SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp , SEXP value_sexp, SEX
   const bool overWrite = static_cast<bool>(LOGICAL(overWrite_sexp)[0]);
 
   if(conn->existsTable(tableName) && overWrite) {
-    conn->removeTable(tableName);
+    if(!conn->removeTable(tableName)) {
+      cerr << "could not remove existing table." << endl;
+      return ScalarInteger(0);
+    }
   }
   //try {
   int rows = conn->writeTable(tableName, value_sexp, writeRowNames);

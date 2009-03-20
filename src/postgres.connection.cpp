@@ -147,6 +147,13 @@ TypeConverter* PostgresConnection::getTypeConverter(SEXP value_sexp) {
   vector<string> object_class;
   sexp2string(getAttrib(value_sexp,R_ClassSymbol), back_inserter(object_class));
 
+  // remove asis class
+  // since it's not the class we really care about
+  // need to do this before anything else
+  if(!object_class.empty() && object_class[0]=="AsIs") {
+    object_class.erase(object_class.begin());
+  }
+
   if(object_class.empty()) {
     switch(TYPEOF(value_sexp)) {
     case LGLSXP:
@@ -194,6 +201,26 @@ TypeConverter* PostgresConnection::getTypeConverter(SEXP value_sexp) {
     }
   }
 
+  // "POSIXct" in 1st position (this can happen when people add the class manually)
+  if(object_class[0]=="POSIXct") {
+    if(posixHasTimes(value_sexp)) {
+      //FIXME: return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp);
+      return new GenericTypeConverter_default(value_sexp,"integer");
+    } else {
+      return new GenericTypeConverter_dateFromPOSIXct(value_sexp,"date");
+    }
+  }
+
+  // "POSIXlt" in 1st position (this can happen when people add the class manually)
+  if(object_class[0]=="POSIXlt") {
+    if(posixHasTimes(value_sexp)) {
+      //FIXME: return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp);
+      return new GenericTypeConverter_default(value_sexp,"integer");
+    } else {
+      return new GenericTypeConverter_dateFromPOSIXlt(value_sexp,"date");
+    }
+  }
+
   if(object_class[0]=="factor") {
     return new GenericTypeConverter_charFromFactor(value_sexp,"character_varying");
   }
@@ -204,6 +231,27 @@ TypeConverter* PostgresConnection::getTypeConverter(SEXP value_sexp) {
 
   if(object_class[0]=="logical") {
     return new GenericTypeConverter_boolean(value_sexp,"boolean");
+  }
+
+  // not a common class, so just use basic type to convert
+  // repeats switch from above
+  // FIXME: move this to a function
+  switch(TYPEOF(value_sexp)) {
+  case LGLSXP:
+    return new GenericTypeConverter_boolean(value_sexp, "boolean");
+  case INTSXP:
+    return new GenericTypeConverter_integer(value_sexp, "integer");
+  case REALSXP:
+    return new GenericTypeConverter_double(value_sexp, "double precision");
+  case STRSXP:
+    return new GenericTypeConverter_char(value_sexp, "character varying");
+  case EXTPTRSXP:
+  case WEAKREFSXP:
+  case RAWSXP:
+    /* these will be bytea */
+  case CPLXSXP: /* need a complex type in postgres before this can be supported */
+  default:
+    throw DatabaseConnection::TypeNotSupported(object_class[0].c_str());
   }
   throw DatabaseConnection::TypeNotSupported(object_class[0].c_str());
 }

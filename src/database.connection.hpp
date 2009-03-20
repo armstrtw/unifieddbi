@@ -57,8 +57,12 @@ public:
   // this implementation will use text conversions: "insert into _table_ values (1,2,3)"
   // where the rows are converted to text using TypeConverters
   virtual int writeTable(const char* tableName, SEXP value_sexp, const bool writeRowNames);
+
   // do not delete createTableFromTypes
   void createTable(const char* tableName, std::vector<std::string>& colnames, std::vector<TypeConverter*>& typeConverters);
+
+  // implemented here, but specific implementations might have allowed characters in colnames
+  virtual void cleanColnames(std::vector<std::string>& colnames, const std::string& badString, const std::string& replaceString) const;
 
   // factory method:
   static DatabaseConnection* init(const char* dbType);

@@ -64,6 +64,7 @@ class GenericTypeConverter_double : public TypeConverter {
 
   const std::string toString(const R_len_t row) {
     std::stringstream ans;
+    ans.precision(52); //IEEE 754
     ans << REAL(sexp_)[row];
     return ans.str();
   }
@@ -80,11 +81,19 @@ class GenericTypeConverter_char : public TypeConverter {
   GenericTypeConverter_char(SEXP x, const char* nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
-    return std::string(CHAR(STRING_ELT(sexp_,row)));
+    std::stringstream ans;
+    ans << "'";
+    ans << std::string(CHAR(STRING_ELT(sexp_,row)));
+    ans << "'";
+    return ans.str();
   }
 
   const std::string toString(const R_len_t row, const R_len_t col) {
-    return std::string(CHAR(STRING_ELT(sexp_,col*row +row)));
+    std::stringstream ans;
+    ans << "'";
+    ans << std::string(CHAR(STRING_ELT(sexp_,col*row +row)));
+    ans << "'";
+    return ans.str();
   }
 };
 
@@ -133,9 +142,9 @@ class GenericTypeConverter_dateFromPOSIXlt : public TypeConverter {
     // col 6 is year - 1900
     // col 5 mon - 1
     // col 4 is day
-    return posixlt2string(REAL(VECTOR_ELT(sexp_,6))[row] + 1900,
-			  REAL(VECTOR_ELT(sexp_,5))[row] + 1,
-			  REAL(VECTOR_ELT(sexp_,4))[row]);
+    return posixlt2string(static_cast<int>(REAL(VECTOR_ELT(sexp_,6))[row] + 1900),
+			  static_cast<int>(REAL(VECTOR_ELT(sexp_,5))[row] + 1),
+			  static_cast<int>(REAL(VECTOR_ELT(sexp_,4))[row]));
   }
 
   const std::string toString(const R_len_t row, const R_len_t col) {

@@ -68,6 +68,10 @@ void DatabaseConnection::createTable(const char* tableName, vector<string>& coln
     return;
   }
 
+  cleanColnames(colnames, string("."),"_");
+  cleanColnames(colnames, string("("),"");
+  cleanColnames(colnames, string(")"),"");
+  cleanColnames(colnames, string(" "),"_");
   query << "CREATE TABLE " << tableName << endl << "(";
   for(size_t i = 0; i < colnames.size(); i++) {
     query << colnames[i] <<  " " << typeConverters[i]->getNativeType();
@@ -104,4 +108,10 @@ SEXP DatabaseConnection::readTable(const char* tableName) {
   query << "select * from " << tableName << endl;
   QueryResults* res = sendQuery(query.str().c_str());
   return res->fetch(-1);
+}
+
+void DatabaseConnection::cleanColnames(vector<string>& colnames, const string& badString, const string& replaceString) const {
+  for(vector<string>::iterator iter = colnames.begin(); iter != colnames.end(); iter++) {
+    cleanString(*iter, badString, replaceString);
+  }
 }
