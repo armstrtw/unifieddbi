@@ -33,7 +33,7 @@ private:
 public:
   QueryResults(ColumnFactory* columnFactory);
   virtual ~QueryResults();
-  virtual void getStatus() const = 0;
+  virtual void printStatus() const = 0;
   virtual bool valid() const = 0;
   virtual int nrow() const = 0;
 

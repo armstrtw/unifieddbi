@@ -15,51 +15,56 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#include <vector>
+#ifndef R_OBJECTS_HPP
+#define R_OBJECTS_HPP
+
 #include <string>
-#include <iostream>
-#include <libpq-fe.h>
 #include <Rinternals.h>
+#include "database.connection.hpp"
 
-#include "postgres.results.hpp"
-#include "postgres.results.column.hpp"
-#include "postgres.column.factory.hpp"
+class Robject {
+protected:
+  SEXP sexp_;
+public:
+  Robject(SEXP x) : sexp_(x) {}
+  ~Robject() {}
+  static Robject* factory(SEXP x);
+  virtual int writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames) = 0;
+};
 
-using std::cout;
-using std::endl;
+class RDataFrame : public Robject {
+private:
+friend class Robject;
+  RDataFrame(SEXP x) : Robject(x) {}
+public:
+  bool hasRownames() const;
+  bool hasColnames() const;
+  SEXP getRownames() const;
+  SEXP getColnames() const;
+  int writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames);
+};
 
-using namespace postgres;
 
-PostgresResults::PostgresResults(const PGresult *res) : QueryResults(new PostgresColumnFactory(res)), res_(res) {
-  //cout << "PostgresResults::PostgresResults(const PGresult *res)" << endl;
-}
+class RMatrix : public Robject {
+private:
+  friend class Robject;
+  RMatrix(SEXP x) : Robject(x) {}
+public:
+  bool hasRownames() const;
+  bool hasColnames() const;
+  SEXP getRownames() const;
+  SEXP getColnames() const;
+  int writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames);
+};
 
-PostgresResults::~PostgresResults() {
-  //cout << "PostgresResults::~PostgresResults" << endl;
-  PQclear(const_cast<PGresult*>(res_));
-}
+class RVector : public Robject {
+private:
+  friend class Robject;
+  RVector(SEXP x) : Robject(x) {}
+public:
+  bool hasNames() const;
+  SEXP getNames() const;
+  int writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames);
+};
 
-void PostgresResults::printStatus() const {
-  ExecStatusType query_status = PQresultStatus(res_);
-  cout << "status: " << PQresStatus(query_status) << endl;
-  if(query_status != PGRES_COMMAND_OK) {
-    cout << "error msg: " << PQresultErrorMessage(res_) << endl;
-  }
-}
-
-bool PostgresResults::valid() const {
-  const int res_status = PQresultStatus(res_);
-  if(res_status == PGRES_COMMAND_OK ||
-     res_status == PGRES_TUPLES_OK) {
-    return true;
-  }
-  return false;
-}
-
-int PostgresResults::nrow() const {
-  return PQntuples(res_);
-}
-
-int PostgresResults::ncol() const {
-  return PQnfields(res_);
-}
+#endif // R_OBJECTS_HPP

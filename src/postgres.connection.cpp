@@ -23,11 +23,17 @@
 #include <Rinternals.h>
 #include <cstdlib>
 
+#include <Rutilities.hpp>
 #include "postgres.connection.hpp"
+#include "generic.type.converter.hpp"
+#include "utils.hpp"
 
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::vector;
+using std::string;
+using std::stringstream;
 using namespace postgres;
 
 PostgresConnection::~PostgresConnection() {
@@ -98,28 +104,8 @@ SEXP PostgresConnection::listTables() {
   return res->fetch(-1);
 }
 
-SEXP PostgresConnection::readTable(const char* tableName) {
-  std::stringstream query;
-
-  if(!connectionValid()) {
-    cerr << "cannot connect to databse" << endl;
-    return R_NilValue;
-  }
-  query << "select * from " << tableName << endl;
-  QueryResults* res = sendQuery(query.str().c_str());
-
-  return res->fetch(-1);
-}
-
-int PostgresConnection::writeTable(const char* tableName, SEXP x, const bool writeRowNames, const bool overwrite, const bool append) {
-  if(!connectionValid()) {
-    cerr << "cannot connect to databse" << endl;
-  }
-  return 0;
-}
-
 bool PostgresConnection::existsTable(const char* tableName) {
-  std::stringstream query;
+  stringstream query;
   if(!connectionValid()) {
     cerr << "cannot connect to databse" << endl;
     return false;
@@ -138,16 +124,6 @@ bool PostgresConnection::existsTable(const char* tableName) {
   return false;
 }
 
-bool PostgresConnection::removeTable(const char* tableName) {
-  // FIXME: check for single word or schema.table ie no spaces?
-  //std::stringstream query;
-  //query <<  "drop table " << tableName;
-  //PostgresResults* res = sendQuery(query.str().c_str());
-  // FIXME: send total rows affected
-  cerr << "not implemented yet" << endl;
-  return false;
-}
-
 PostgresResults* PostgresConnection::sendQuery(const char* query) {
   if(query && connectionValid()) {
     //return new PostgresResults(static_cast<const PGresult*>(PQexec(conn_,query)));
@@ -155,4 +131,79 @@ PostgresResults* PostgresConnection::sendQuery(const char* query) {
   }
   cerr << "bad connection to database" << endl;
   return static_cast<PostgresResults*>(NULL);
+}
+
+
+// this function needs the whole object to determine type
+// for these reasons
+// 1) POSIXct -- uses the same R class to represent both date and timestamp
+//    the only way to determine which database type to use is to scan the dates
+//    to see if there are any with precision greater than %Y-%m-%d
+// 2) factors, could be uploaded as enums, for now, just use characters
+// 3) character types, should they really be uploaded as text as the RPostgreSQL
+//    package does?  I think varchar could be used until we hit a a certain character limit
+//    this is somewhat heuristic, but I think it's better than using text for all character objects
+TypeConverter* PostgresConnection::getTypeConverter(SEXP value_sexp) {
+  vector<string> object_class;
+  sexp2string(getAttrib(value_sexp,R_ClassSymbol), back_inserter(object_class));
+
+  if(object_class.empty()) {
+    switch(TYPEOF(value_sexp)) {
+    case LGLSXP:
+      return new GenericTypeConverter_boolean(value_sexp, "boolean");
+    case INTSXP:
+      return new GenericTypeConverter_integer(value_sexp, "integer");
+    case REALSXP:
+      return new GenericTypeConverter_double(value_sexp, "double precision");
+    case STRSXP:
+      return new GenericTypeConverter_char(value_sexp, "character varying");
+    case EXTPTRSXP:
+    case WEAKREFSXP:
+    case RAWSXP:
+      /* these will be bytea */
+    case CPLXSXP: /* need a complex type in postgres before this can be supported */
+    default:
+      throw DatabaseConnection::TypeNotSupported("(no class attribute found)");
+    }
+  }
+
+  if(object_class[0]=="integer") {
+    return new GenericTypeConverter_integer(value_sexp,"integer");
+  }
+
+  if(object_class[0]=="numeric") {
+    return new GenericTypeConverter_double(value_sexp,"double precision");
+  }
+
+  if(object_class[0]=="POSIXt") {
+    if(object_class.size() > 1 && object_class[1]=="POSIXct") {
+      if(posixHasTimes(value_sexp)) {
+	//FIXME: return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp);
+	return new GenericTypeConverter_default(value_sexp,"integer");
+      } else {
+	return new GenericTypeConverter_dateFromPOSIXct(value_sexp,"date");
+      }
+    }
+    if(object_class.size() > 1 && object_class[1]=="POSIXlt") {
+      if(posixHasTimes(value_sexp)) {
+	//FIXME: return new GenericTypeConverter_datetimeFromPOSIXlt(value_sexp,"timestamp with timezone");
+	return new GenericTypeConverter_default(value_sexp,"integer");
+      } else {
+	return new GenericTypeConverter_dateFromPOSIXlt(value_sexp,"date");
+      }
+    }
+  }
+
+  if(object_class[0]=="factor") {
+    return new GenericTypeConverter_charFromFactor(value_sexp,"character_varying");
+  }
+
+  if(object_class[0]=="character") {
+    return new GenericTypeConverter_char(value_sexp,"character_varying");
+  }
+
+  if(object_class[0]=="logical") {
+    return new GenericTypeConverter_boolean(value_sexp,"boolean");
+  }
+  throw DatabaseConnection::TypeNotSupported(object_class[0].c_str());
 }

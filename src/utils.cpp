@@ -15,31 +15,51 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef POSTGRES_RESULTS_HPP
-#define POSTGRES_RESULTS_HPP
-
 #include <iostream>
-#include <libpq-fe.h>
+#include <cstring>
+#include <vector>
+#include <string>
+#include <ctime>
+#include <boost/date_time/gregorian/gregorian.hpp>
+
 #include <Rinternals.h>
+#include <Rmath.h>
+#include <Rutilities.hpp>
 
-#include "query.results.hpp"
-#include "postgres.results.column.hpp"
+#include "utils.hpp"
 
-namespace postgres {
+using std::vector;
+using std::string;
+using std::cout;
+using std::endl;
+using namespace boost::gregorian;
 
-  class PostgresResults : public QueryResults {
-  private:
-    const PGresult *res_;
-  public:
-    PostgresResults(const PGresult *res);
-    PostgresResults(PGresult *res);
-    ~PostgresResults();
-    void printStatus() const;
-    bool valid() const;
-    int nrow() const;
-    int ncol() const;
-    void getColnames(std::vector<std::string>& ans) const;
-  };
+// does not check to make sure it's a POSIXct object
+bool posixHasTimes(SEXP x) {
+  for(R_len_t i = 0; i < length(x); i++) {
+    time_t x_time_t = static_cast<time_t>(REAL(x)[i]);
+    struct tm x_struct_tm;
+    memset(&x_struct_tm,'\0',sizeof(struct tm));
+    x_struct_tm.tm_isdst = -1;
+    localtime_r(&x_time_t, &x_struct_tm);
+    if(x_struct_tm.tm_sec || x_struct_tm.tm_min || x_struct_tm.tm_hour) {
+      return true;
+    }
+  }
+  return false;
+}
 
-} // namespace postgres
-#endif // POSTGRES_RESULTS_HPP
+string posix2string(const double x) {
+  const double secs_in_day = 60*60*24;
+  boost::gregorian::date posix_epoch(1970,1,1);
+
+  long days_since_epoch = static_cast<long>(fround(x/secs_in_day,0));
+  boost::gregorian::date_duration dd(static_cast<long int>(days_since_epoch));
+  boost::gregorian::date ans = posix_epoch + dd;
+  return to_iso_extended_string(ans);
+}
+
+string posixlt2string(const int year, const int mon, const int day) {
+  date ans(year, mon, day);
+  return to_iso_extended_string(ans);
+}

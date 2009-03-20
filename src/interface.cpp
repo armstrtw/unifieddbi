@@ -16,7 +16,6 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
-
 #include "interface.hpp"
 #include "postgres.connection.hpp"
 #include "query.results.hpp"
@@ -158,4 +157,37 @@ SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp) {
   } else {
     return R_NilValue;
   }
+}
+
+// return number of rows written to database
+// using both overwrite and append is a bad design decision
+// there should just be overwrite, which will drop the table if it exists
+// append should be automatic if the table exists, and should fail if the row formats don't match up
+// having both overwrite and append just complicates the logic of this function
+SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp , SEXP value_sexp, SEXP writeRowNames_sexp, SEXP overWrite_sexp, SEXP append_sexp) {
+  cout << "ignoring append argument" << endl;
+  SEXP ans;
+  DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
+  if(!conn) {
+    // throw bad_connection_object
+    cerr << "bad database connection." << endl;
+    return ScalarInteger(0);
+  }
+
+  const char* tableName = CHAR(STRING_ELT(tableName_sexp,0));
+  const bool writeRowNames = static_cast<bool>(LOGICAL(writeRowNames_sexp)[0]);
+  const bool overWrite = static_cast<bool>(LOGICAL(overWrite_sexp)[0]);
+
+  if(conn->existsTable(tableName) && overWrite) {
+    conn->removeTable(tableName);
+  }
+  //try {
+  int rows = conn->writeTable(tableName, value_sexp, writeRowNames);
+  //} catch (...) { // bad write?
+  //return R_NilValue;
+  //}
+  PROTECT(ans = allocVector(INTSXP,1));
+  INTEGER(ans)[0] = rows;
+  UNPROTECT(1);
+  return ans;
 }

@@ -34,6 +34,7 @@ namespace postgres {
     friend class DatabaseConnection;
     void verifyConnection();
     bool connectionValid();
+    std::string getNativeType(SEXPTYPE basic_type);
   public:
     void connect(const char* connectionString);
     void connect(const char* user,
@@ -47,11 +48,9 @@ namespace postgres {
     bool commit();
     bool rollback();
     SEXP listTables();
-    SEXP readTable(const char* tableName);
-    int writeTable(const char* tableName, SEXP x, const bool writeRowNames, const bool overwrite, const bool append);
     bool existsTable(const char* tableName);
-    bool removeTable(const char* tableName);
     PostgresResults* sendQuery(const char* query);
+    TypeConverter* getTypeConverter(SEXP value_sexp);
   };
 } // namespace postgres
 #endif // POSTGRES_CONNECTION_HPP

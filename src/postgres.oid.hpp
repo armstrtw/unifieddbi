@@ -17,6 +17,7 @@
 
 #ifndef POSTGRES_OID_HPP
 #define POSTGRES_OID_HPP
+
 namespace postgres {
   enum pg_oidT {
     BOOLOID=16,

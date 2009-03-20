@@ -15,31 +15,28 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef POSTGRES_RESULTS_HPP
-#define POSTGRES_RESULTS_HPP
+#ifndef TYPE_CONVERTER_HPP
+#define TYPE_CONVERTER_HPP
 
-#include <iostream>
-#include <libpq-fe.h>
-#include <Rinternals.h>
+#include <string>
 
-#include "query.results.hpp"
-#include "postgres.results.column.hpp"
+class TypeConverter {
+protected:
+  SEXP sexp_;
+  const std::string nativeType_;
+public:
+  TypeConverter(SEXP x, const char* nativeType) : sexp_(x), nativeType_(nativeType) {}
+  virtual ~TypeConverter() {}
 
-namespace postgres {
+  // vector form
+  virtual const std::string toString(const R_len_t row) = 0;
 
-  class PostgresResults : public QueryResults {
-  private:
-    const PGresult *res_;
-  public:
-    PostgresResults(const PGresult *res);
-    PostgresResults(PGresult *res);
-    ~PostgresResults();
-    void printStatus() const;
-    bool valid() const;
-    int nrow() const;
-    int ncol() const;
-    void getColnames(std::vector<std::string>& ans) const;
-  };
+  // matrix form
+  virtual const std::string toString(const R_len_t row,const R_len_t col) = 0;
 
-} // namespace postgres
-#endif // POSTGRES_RESULTS_HPP
+  std::string getNativeType() {
+    return nativeType_;
+  }
+};
+
+#endif // TYPE_CONVERTER_HPP

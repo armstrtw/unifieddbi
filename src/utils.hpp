@@ -15,31 +15,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef POSTGRES_RESULTS_HPP
-#define POSTGRES_RESULTS_HPP
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
-#include <iostream>
-#include <libpq-fe.h>
 #include <Rinternals.h>
 
-#include "query.results.hpp"
-#include "postgres.results.column.hpp"
+bool hasRownames(SEXP x);
+SEXP getRownames(SEXP x);
+SEXP getColnames(SEXP x);
+bool posixHasTimes(SEXP x);
+std::string posix2string(const double x);
+std::string posixlt2string(const int year, const int mon, const int day);
 
-namespace postgres {
-
-  class PostgresResults : public QueryResults {
-  private:
-    const PGresult *res_;
-  public:
-    PostgresResults(const PGresult *res);
-    PostgresResults(PGresult *res);
-    ~PostgresResults();
-    void printStatus() const;
-    bool valid() const;
-    int nrow() const;
-    int ncol() const;
-    void getColnames(std::vector<std::string>& ans) const;
-  };
-
-} // namespace postgres
-#endif // POSTGRES_RESULTS_HPP
+#endif // UTILS_HPP
