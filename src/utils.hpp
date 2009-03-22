@@ -25,8 +25,10 @@ bool hasRownames(SEXP x);
 SEXP getRownames(SEXP x);
 SEXP getColnames(SEXP x);
 bool posixHasTimes(SEXP x);
-std::string posix2string(const double x);
-std::string posixlt2string(const int year, const int mon, const int day);
+std::string posixDate2string(const double x);
+std::string posixltDate2string(const int year, const int mon, const int day);
+std::string posixDateTime2string(const double x);
+//std::string posixltDateTime2string(const int year, const int mon, const int day);
 void cleanString(std::string& str, const std::string& badString, const std::string& replaceString);
 
 #endif // UTILS_HPP

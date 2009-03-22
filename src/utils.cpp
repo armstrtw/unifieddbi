@@ -21,6 +21,7 @@
 #include <string>
 #include <ctime>
 #include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <Rinternals.h>
 #include <Rmath.h>
@@ -33,6 +34,7 @@ using std::string;
 using std::cout;
 using std::endl;
 using namespace boost::gregorian;
+using namespace boost::posix_time;
 
 // does not check to make sure it's a POSIXct object
 bool posixHasTimes(SEXP x) {
@@ -43,13 +45,18 @@ bool posixHasTimes(SEXP x) {
     x_struct_tm.tm_isdst = -1;
     localtime_r(&x_time_t, &x_struct_tm);
     if(x_struct_tm.tm_sec || x_struct_tm.tm_min || x_struct_tm.tm_hour) {
+      cout << "bad time: " << x_time_t << endl;
       return true;
     }
   }
   return false;
 }
 
-string posix2string(const double x) {
+std::string posixDateTime2string(const double x) {
+  return to_iso_extended_string(from_time_t(static_cast<time_t>(x)));
+}
+
+string posixDate2string(const double x) {
   const double secs_in_day = 60*60*24;
   boost::gregorian::date posix_epoch(1970,1,1);
 
@@ -59,7 +66,7 @@ string posix2string(const double x) {
   return to_iso_extended_string(ans);
 }
 
-string posixlt2string(const int year, const int mon, const int day) {
+string posixltDate2string(const int year, const int mon, const int day) {
   date ans(year, mon, day);
   return to_iso_extended_string(ans);
 }

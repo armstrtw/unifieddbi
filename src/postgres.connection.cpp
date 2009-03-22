@@ -185,9 +185,9 @@ TypeConverter* PostgresConnection::getTypeConverter(SEXP value_sexp) {
   if(object_class[0]=="POSIXt") {
     if(object_class.size() > 1 && object_class[1]=="POSIXct") {
       if(posixHasTimes(value_sexp)) {
-	//FIXME: return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp);
-	return new GenericTypeConverter_default(value_sexp,"integer");
+	return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp,"timestamp");
       } else {
+        cout << "returning GenericTypeConverter_dateFromPOSIXct for POSIXct" << endl;
 	return new GenericTypeConverter_dateFromPOSIXct(value_sexp,"date");
       }
     }
@@ -204,8 +204,7 @@ TypeConverter* PostgresConnection::getTypeConverter(SEXP value_sexp) {
   // "POSIXct" in 1st position (this can happen when people add the class manually)
   if(object_class[0]=="POSIXct") {
     if(posixHasTimes(value_sexp)) {
-      //FIXME: return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp);
-      return new GenericTypeConverter_default(value_sexp,"integer");
+      return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp,"timestamp");
     } else {
       return new GenericTypeConverter_dateFromPOSIXct(value_sexp,"date");
     }
