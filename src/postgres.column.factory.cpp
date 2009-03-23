@@ -52,6 +52,7 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
       return new BOOLOID_char(res_, i);
     default:
       cerr << "conversion not supported using null conversion for column number: " << i << endl;
+      cerr << "native oid value: " << PQftype(res_,i) << endl;
       return new defaultResultColumn(res_, i);
     }
   } else {
@@ -66,9 +67,11 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
       return new BOOLOID_binary(res_,i);
     case VARCHAROID:
     case TEXTOID:
+    case CHAROID:
       return new text_char(res_, i);
     default:
       cerr << "conversion not supported using null conversion for column number: " << i << endl;
+      cerr << "native oid value: " << PQftype(res_,i) << endl;
       return new defaultResultColumn(res_, i);
     }
   }
