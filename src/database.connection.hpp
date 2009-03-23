@@ -28,6 +28,13 @@
 #include "query.results.hpp"
 
 class DatabaseConnection {
+protected:
+  virtual std::string getBooleanType() const = 0;
+  virtual std::string getIntegerType() const = 0;
+  virtual std::string getDoubleType() const = 0;
+  virtual std::string getCharacterType() const = 0;
+  virtual std::string getDateTimeType() const = 0;
+  virtual std::string getDateType() const = 0;
 public:
   virtual ~DatabaseConnection() {}
 
@@ -47,9 +54,10 @@ public:
   virtual SEXP listTables() = 0;
   virtual bool existsTable(const char* tableName) = 0;
   virtual QueryResults* sendQuery(const char* query) = 0;
-  virtual TypeConverter* getTypeConverter(SEXP x) = 0;
 
   // implemented in this class
+  virtual TypeConverter* getTypeConverter(SEXP x);
+  virtual TypeConverter* getTypeConverterFromBasicType(SEXP value_sexp);
   bool removeTable(const char* tableName);
   SEXP readTable(const char* tableName);
 

@@ -35,6 +35,13 @@ namespace postgres {
     void verifyConnection();
     bool connectionValid();
     std::string getNativeType(SEXPTYPE basic_type);
+  protected:
+  std::string getBooleanType() const { return std::string("boolean"); }
+  std::string getIntegerType() const { return std::string("integer"); }
+  std::string getDoubleType() const { return std::string("double precision"); }
+  std::string getCharacterType() const { return std::string("character varying"); }
+  std::string getDateTimeType() const { return std::string("timestamp with timezone"); }
+  std::string getDateType() const { return std::string("date"); }
   public:
     void connect(const char* connectionString);
     void connect(const char* user,
@@ -50,7 +57,6 @@ namespace postgres {
     SEXP listTables();
     bool existsTable(const char* tableName);
     PostgresResults* sendQuery(const char* query);
-    TypeConverter* getTypeConverter(SEXP value_sexp);
   };
 } // namespace postgres
 #endif // POSTGRES_CONNECTION_HPP

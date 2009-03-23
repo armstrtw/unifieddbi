@@ -25,7 +25,7 @@ protected:
   SEXP sexp_;
   const std::string nativeType_;
 public:
-  TypeConverter(SEXP x, const char* nativeType) : sexp_(x), nativeType_(nativeType) {}
+  TypeConverter(SEXP x, const std::string& nativeType) : sexp_(x), nativeType_(nativeType) {}
   virtual ~TypeConverter() {}
 
   // vector form

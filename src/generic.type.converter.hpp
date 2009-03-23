@@ -28,7 +28,7 @@
 
 class GenericTypeConverter_default : public TypeConverter {
  public:
-  GenericTypeConverter_default(SEXP x, const char* nativeType) : TypeConverter(x, nativeType) {}
+  GenericTypeConverter_default(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
     return std::string("");
@@ -42,7 +42,7 @@ class GenericTypeConverter_default : public TypeConverter {
 
 class GenericTypeConverter_integer : public TypeConverter {
  public:
-  GenericTypeConverter_integer(SEXP x, const char* nativeType) : TypeConverter(x, nativeType) {}
+  GenericTypeConverter_integer(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
     std::stringstream ans;
@@ -60,7 +60,7 @@ class GenericTypeConverter_integer : public TypeConverter {
 
 class GenericTypeConverter_double : public TypeConverter {
  public:
-  GenericTypeConverter_double(SEXP x, const char* nativeType) : TypeConverter(x, nativeType) {}
+  GenericTypeConverter_double(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
     std::stringstream ans;
@@ -78,7 +78,7 @@ class GenericTypeConverter_double : public TypeConverter {
 
 class GenericTypeConverter_char : public TypeConverter {
  public:
-  GenericTypeConverter_char(SEXP x, const char* nativeType) : TypeConverter(x, nativeType) {}
+  GenericTypeConverter_char(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
     std::stringstream ans;
@@ -99,7 +99,7 @@ class GenericTypeConverter_char : public TypeConverter {
 
 class GenericTypeConverter_boolean : public TypeConverter {
 public:
-  GenericTypeConverter_boolean(SEXP x, const char* nativeType) : TypeConverter(x, nativeType) {}
+  GenericTypeConverter_boolean(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
     std::stringstream ans;
@@ -119,7 +119,7 @@ public:
 
 class GenericTypeConverter_dateFromPOSIXct : public TypeConverter {
 public:
-  GenericTypeConverter_dateFromPOSIXct(SEXP x, const char* nativeType) : TypeConverter(x, nativeType) {}
+  GenericTypeConverter_dateFromPOSIXct(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
     std::stringstream ans;
@@ -136,7 +136,7 @@ public:
 
 class GenericTypeConverter_dateFromPOSIXlt : public TypeConverter {
  public:
-  GenericTypeConverter_dateFromPOSIXlt(SEXP x, const char* nativeType) : TypeConverter(x, nativeType) {}
+  GenericTypeConverter_dateFromPOSIXlt(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
     // col 6 is year - 1900
@@ -157,17 +157,25 @@ class GenericTypeConverter_charFromFactor : public TypeConverter {
  private:
   SEXP levels_;
   std::string factorLevelAtIndex(const R_len_t i) {
-    return std::string(CHAR(STRING_ELT(levels_,INTEGER(sexp_)[i])));
+    return std::string(CHAR(STRING_ELT(levels_,INTEGER(sexp_)[i]-1)));
   }
  public:
-  GenericTypeConverter_charFromFactor(SEXP x, const char* nativeType) : TypeConverter(x, nativeType), levels_(getAttrib(x,R_LevelsSymbol)) {}
+  GenericTypeConverter_charFromFactor(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType), levels_(getAttrib(x,R_LevelsSymbol)) {}
 
   const std::string toString(const R_len_t row) {
-    return factorLevelAtIndex(row);
+    std::stringstream ans;
+    ans << "'";
+    ans << factorLevelAtIndex(row);
+    ans << "'";
+    return ans.str();
   }
 
   const std::string toString(const R_len_t row, const R_len_t col) {
-    return factorLevelAtIndex(col*row +row);
+    std::stringstream ans;
+    ans << "'";
+    ans << factorLevelAtIndex(col*row +row);
+    ans << "'";
+    return ans.str();
   }
 };
 
@@ -175,7 +183,7 @@ class GenericTypeConverter_charFromFactor : public TypeConverter {
 // GenericTypeConverter_datetimeFromPOSIXct
 class GenericTypeConverter_datetimeFromPOSIXct : public TypeConverter {
 public:
-  GenericTypeConverter_datetimeFromPOSIXct(SEXP x, const char* nativeType) : TypeConverter(x, nativeType) {}
+  GenericTypeConverter_datetimeFromPOSIXct(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
     std::stringstream ans;

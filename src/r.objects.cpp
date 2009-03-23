@@ -122,7 +122,7 @@ int RDataFrame::writeToDatabase(DatabaseConnection* conn, const char* tableName,
       }
     }
     query << ")";
-    cout << query.str() << endl;
+    //cout << query.str() << endl;
     QueryResults* res = conn->sendQuery(query.str().c_str());
     query_success = res->valid();
     rows_written += static_cast<int>(query_success);
