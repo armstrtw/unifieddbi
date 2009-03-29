@@ -81,14 +81,22 @@ void PostgresConnection::disConnect() {
   conn_ = NULL;
 }
 
-bool PostgresConnection::commit() {
-  // does nothing on Postgres
+bool PostgresConnection::transaction_begin() {
+  PostgresResults* beginResults = sendQuery("BEGIN;");
+  // FIXME: check results
   return true;
 }
 
 bool PostgresConnection::rollback() {
-  // does nothing on Postgres
-  return false;
+  PostgresResults* rollbackResults = sendQuery("ROLLBACK;");
+  // FIXME: check results
+  return true;
+}
+
+bool PostgresConnection::commit() {
+  PostgresResults* commitResults = sendQuery("COMMIT;");
+  // FIXME: check results
+  return true;
 }
 
 SEXP PostgresConnection::listTables() {

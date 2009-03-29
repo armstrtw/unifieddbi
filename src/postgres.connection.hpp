@@ -40,7 +40,7 @@ namespace postgres {
   std::string getIntegerType() const { return std::string("integer"); }
   std::string getDoubleType() const { return std::string("double precision"); }
   std::string getCharacterType() const { return std::string("character varying"); }
-  std::string getDateTimeType() const { return std::string("timestamp with timezone"); }
+  std::string getDateTimeType() const { return std::string("timestamp with time zone"); }
   std::string getDateType() const { return std::string("date"); }
   public:
     void connect(const char* connectionString);
@@ -52,8 +52,9 @@ namespace postgres {
 		 const char* dbName,
 		 const char* options);
     void disConnect();
-    bool commit();
+    bool transaction_begin();
     bool rollback();
+    bool commit();
     SEXP listTables();
     bool existsTable(const char* tableName);
     PostgresResults* sendQuery(const char* query);

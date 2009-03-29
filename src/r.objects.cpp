@@ -111,7 +111,7 @@ int RDataFrame::writeToDatabase(DatabaseConnection* conn, const char* tableName,
   if(!conn->existsTable(tableName)) {
     conn->createTable(tableName,colnames,typeConverters);
   }
-
+  conn->transaction_begin();
   do {
     stringstream query;
     query << "insert into " << tableName << " values (";
@@ -122,7 +122,7 @@ int RDataFrame::writeToDatabase(DatabaseConnection* conn, const char* tableName,
       }
     }
     query << ")";
-    //cout << query.str() << endl;
+    cout << query.str() << endl;
     QueryResults* res = conn->sendQuery(query.str().c_str());
     query_success = res->valid();
     rows_written += static_cast<int>(query_success);
@@ -131,6 +131,7 @@ int RDataFrame::writeToDatabase(DatabaseConnection* conn, const char* tableName,
       cout << rows_written << endl;
     }
   } while(rows_written < rows_to_write && query_success);
+  conn->commit();
 
   // free typeconverters
   for(vector<TypeConverter*>::iterator iter = typeConverters.begin(); iter != typeConverters.end(); iter++) {

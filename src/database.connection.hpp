@@ -49,8 +49,9 @@ public:
 		       const char* options) = 0;
 
   virtual void disConnect() = 0;
-  virtual bool commit() = 0;
+  virtual bool transaction_begin() = 0;
   virtual bool rollback() = 0;
+  virtual bool commit() = 0;
   virtual SEXP listTables() = 0;
   virtual bool existsTable(const char* tableName) = 0;
   virtual QueryResults* sendQuery(const char* query) = 0;
