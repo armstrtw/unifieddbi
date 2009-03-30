@@ -45,6 +45,7 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
     case VARCHAROID:
     case TEXTOID:
     case CHAROID:
+    case BPCHAROID:
       return new text_char(res_, i);
     case TIMESTAMPOID:
       return new TIMESTAMPOID_char(res_, i);
@@ -68,6 +69,7 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
     case VARCHAROID:
     case TEXTOID:
     case CHAROID:
+    case BPCHAROID:
       return new text_char(res_, i);
     default:
       cerr << "conversion not supported using null conversion for column number: " << i << endl;
