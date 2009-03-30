@@ -122,12 +122,12 @@ int RDataFrame::writeToDatabase(DatabaseConnection* conn, const char* tableName,
       }
     }
     query << ")";
-    cout << query.str() << endl;
+    //cout << query.str() << endl;
     QueryResults* res = conn->sendQuery(query.str().c_str());
     query_success = res->valid();
     rows_written += static_cast<int>(query_success);
     delete res;
-    if(rows_written % 100 == 0) {
+    if(rows_written % 100000 == 0) {
       cout << rows_written << endl;
     }
   } while(rows_written < rows_to_write && query_success);
