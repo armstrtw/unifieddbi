@@ -19,6 +19,7 @@
 #include <cstring>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <ctime>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -31,6 +32,7 @@
 
 using std::vector;
 using std::string;
+using std::stringstream;
 using std::cout;
 using std::endl;
 using namespace boost::gregorian;
@@ -39,31 +41,47 @@ using namespace boost::posix_time;
 // does not check to make sure it's a POSIXct object
 bool posixHasTimes(SEXP x) {
   for(R_len_t i = 0; i < length(x); i++) {
-    time_t x_time_t = static_cast<time_t>(REAL(x)[i]);
-    struct tm x_struct_tm;
-    memset(&x_struct_tm,'\0',sizeof(struct tm));
-    x_struct_tm.tm_isdst = -1;
-    localtime_r(&x_time_t, &x_struct_tm);
-    if(x_struct_tm.tm_sec || x_struct_tm.tm_min || x_struct_tm.tm_hour) {
-      cout << "bad time: " << x_time_t << endl;
-      return true;
+    if(!ISNA(REAL(x)[i])) {
+      time_t x_time_t = static_cast<time_t>(REAL(x)[i]);
+      struct tm x_struct_tm;
+      memset(&x_struct_tm,'\0',sizeof(struct tm));
+      x_struct_tm.tm_isdst = -1;
+      localtime_r(&x_time_t, &x_struct_tm);
+      if(x_struct_tm.tm_sec || x_struct_tm.tm_min || x_struct_tm.tm_hour) {
+        cout << "bad time: " << x_time_t << endl;
+        return true;
+      }
     }
   }
   return false;
 }
 
-std::string posixDateTime2string(const double x) {
-  return to_iso_extended_string(from_time_t(static_cast<time_t>(x)));
+string posixDateTime2string(const double x) {
+  const char format[] = "%Y-%m-%d %H:%M:%S %Z";
+  const int BUFFSIZE = 32;
+  char ans_char[BUFFSIZE];
+  struct tm posix_time_tm;
+
+  const time_t posix_time_t = static_cast<time_t>(x);
+  localtime_r(&posix_time_t,&posix_time_tm);
+  strftime(ans_char,BUFFSIZE,format,&posix_time_tm);
+  return string(ans_char);
 }
 
 string posixDate2string(const double x) {
-  const double secs_in_day = 60*60*24;
-  boost::gregorian::date posix_epoch(1970,1,1);
+  const char format[] = "%Y-%m-%d";
+  const int BUFFSIZE = 16;
+  char ans_char[BUFFSIZE];
+  struct tm posix_time_tm;
 
-  long days_since_epoch = static_cast<long>(fround(x/secs_in_day,0));
-  boost::gregorian::date_duration dd(static_cast<long int>(days_since_epoch));
-  boost::gregorian::date ans = posix_epoch + dd;
-  return to_iso_extended_string(ans);
+  if(ISNA(x)) {
+    return string();
+  }
+
+  const time_t posix_time_t = static_cast<time_t>(x);
+  localtime_r(&posix_time_t,&posix_time_tm);
+  strftime(ans_char,BUFFSIZE,format,&posix_time_tm);
+  return string(ans_char);
 }
 
 string posixltDate2string(const int year, const int mon, const int day) {
@@ -78,4 +96,13 @@ void cleanString(string& str, const string& badString, const string& replaceStri
     str.replace( pos, badString.size(), replaceString );
     pos++;
   }
+}
+
+string AddQuote(const string& x) {
+  stringstream ans;
+  ans << "'";
+  ans << x;
+  ans << "'";
+
+  return ans.str();
 }

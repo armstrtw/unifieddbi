@@ -26,6 +26,11 @@
 #include "type.converter.hpp"
 #include "utils.hpp"
 
+// conflict with R's length
+#ifdef length
+#undef length
+#endif
+
 class GenericTypeConverter_default : public TypeConverter {
  public:
   GenericTypeConverter_default(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
@@ -103,7 +108,6 @@ public:
 
   const std::string toString(const R_len_t row) {
     std::stringstream ans;
-    ans << "'";
     ans << LOGICAL(sexp_)[row];
     ans << "'";
     return ans.str();
@@ -122,15 +126,19 @@ public:
   GenericTypeConverter_dateFromPOSIXct(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
-    std::stringstream ans;
-    ans << "'";
-    ans << posixDate2string(REAL(sexp_)[row]);
-    ans << "'";
-    return ans.str();
+    std::string ans(posixDate2string(REAL(sexp_)[row]));
+    if(ans.length()) {
+      return AddQuote(ans);
+    }
+    return std::string("null");
   }
 
   const std::string toString(const R_len_t row, const R_len_t col) {
-    return posixDate2string(REAL(sexp_)[col*row +row]);
+    std::string ans(posixDate2string(REAL(sexp_)[col*row +row]));
+    if(ans.length()) {
+      return AddQuote(ans);
+    }
+    return std::string("null");
   }
 };
 
@@ -142,14 +150,18 @@ class GenericTypeConverter_dateFromPOSIXlt : public TypeConverter {
     // col 6 is year - 1900
     // col 5 mon - 1
     // col 4 is day
-    return posixltDate2string(static_cast<int>(REAL(VECTOR_ELT(sexp_,6))[row] + 1900),
-			  static_cast<int>(REAL(VECTOR_ELT(sexp_,5))[row] + 1),
-			  static_cast<int>(REAL(VECTOR_ELT(sexp_,4))[row]));
+    std::string ans(posixltDate2string(static_cast<int>(REAL(VECTOR_ELT(sexp_,6))[row] + 1900),
+                                       static_cast<int>(REAL(VECTOR_ELT(sexp_,5))[row] + 1),
+                                       static_cast<int>(REAL(VECTOR_ELT(sexp_,4))[row])));
+    if(ans.length()) {
+      return AddQuote(ans);
+    }
+    return std::string("null");
   }
 
   const std::string toString(const R_len_t row, const R_len_t col) {
     // never called
-    return std::string("");
+    return std::string("null");
   }
 };
 
@@ -163,19 +175,19 @@ class GenericTypeConverter_charFromFactor : public TypeConverter {
   GenericTypeConverter_charFromFactor(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType), levels_(getAttrib(x,R_LevelsSymbol)) {}
 
   const std::string toString(const R_len_t row) {
-    std::stringstream ans;
-    ans << "'";
-    ans << factorLevelAtIndex(row);
-    ans << "'";
-    return ans.str();
+    std::string ans(factorLevelAtIndex(row));
+    if(ans.length()) {
+      return AddQuote(ans);
+    }
+    return std::string("null");
   }
 
   const std::string toString(const R_len_t row, const R_len_t col) {
-    std::stringstream ans;
-    ans << "'";
-    ans << factorLevelAtIndex(col*row +row);
-    ans << "'";
-    return ans.str();
+    std::string ans(factorLevelAtIndex(col*row +row));
+    if(ans.length()) {
+      return AddQuote(ans);
+    }
+    return std::string("null");
   }
 };
 
@@ -186,11 +198,11 @@ public:
   GenericTypeConverter_datetimeFromPOSIXct(SEXP x, const std::string& nativeType) : TypeConverter(x, nativeType) {}
 
   const std::string toString(const R_len_t row) {
-    std::stringstream ans;
-    ans << "'";
-    ans << posixDateTime2string(REAL(sexp_)[row]);
-    ans << "'";
-    return ans.str();
+    std::string ans(posixDateTime2string(REAL(sexp_)[row]));
+    if(ans.length()) {
+      return AddQuote(ans);
+    }
+    return std::string("null");
   }
 
   const std::string toString(const R_len_t row, const R_len_t col) {
