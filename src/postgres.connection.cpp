@@ -37,11 +37,12 @@ using namespace postgres;
 
 PostgresConnection::~PostgresConnection() {
   cout << "PostgresConnection::~PostgresConnection()" << endl;
-  PQfinish(conn_);
-  conn_ = NULL;
+  disConnect();
 }
 
-PostgresConnection::PostgresConnection(): conn_(static_cast<PGconn*>(NULL)) {}
+PostgresConnection::PostgresConnection(): conn_(static_cast<PGconn*>(NULL)) {
+  cout << "PostgresConnection::PostgresConnection()" << endl;
+}
 
 void PostgresConnection::connect(const char* connectionString) {
   conn_ = PQconnectdb(connectionString);
@@ -77,8 +78,10 @@ void PostgresConnection::verifyConnection() {
 }
 
 void PostgresConnection::disConnect() {
-  PQfinish(conn_);
-  conn_ = NULL;
+  if(conn_) {
+    PQfinish(conn_);
+    conn_ = NULL;
+  }
 }
 
 bool PostgresConnection::transaction_begin() {
