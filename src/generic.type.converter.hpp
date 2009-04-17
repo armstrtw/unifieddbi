@@ -21,6 +21,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+//#include <fstream>
 #include <Rinternals.h>
 
 #include "type.converter.hpp"
@@ -70,7 +71,12 @@ class GenericTypeConverter_double : public TypeConverter {
   const std::string toString(const R_len_t row) {
     std::stringstream ans;
     ans.precision(52); //IEEE 754
-    ans << REAL(sexp_)[row];
+    //ans << std::ios::scientific;
+    if(ISNA(REAL(sexp_)[row])) {
+      ans << "'NaN'";
+    } else {
+      ans << REAL(sexp_)[row];
+    }
     return ans.str();
   }
 
