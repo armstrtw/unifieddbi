@@ -106,3 +106,9 @@ string AddQuote(const string& x) {
 
   return ans.str();
 }
+
+void cleanColnames(vector<string>& colnames, const string& badString, const string& replaceString) {
+  for(vector<string>::iterator iter = colnames.begin(); iter != colnames.end(); iter++) {
+    cleanString(*iter, badString, replaceString);
+  }
+}
