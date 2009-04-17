@@ -39,7 +39,7 @@ dbClearResult <- function(dbi.query.results) {
 }
 
 dbDisconnect <- function(dbi.conn) {
-    .Call("dbClearResult", dbi.conn, PACKAGE="unifiedDBI")
+    .Call("dbDisconnect", dbi.conn, PACKAGE="unifiedDBI")
 }
 
 dbWriteTable <- function(dbi.conn, tableName, value, row.names=FALSE, overwrite=FALSE, append=FALSE) {
