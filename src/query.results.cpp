@@ -21,6 +21,7 @@
 #include <Rvector.hpp>
 #include "query.results.hpp"
 #include "conversion.utils.hpp"
+#include "utils.hpp"
 
 using std::cout;
 using std::endl;
@@ -88,6 +89,7 @@ void QueryResults::getColnames(std::vector<std::string>& ans) const {
   for(R_len_t i = 0; i < ncol(); i++) {
     ans.push_back(queryResultColumns_[i]->getName());
   }
+  cleanColnames(ans, "_",".");
 }
 
 const int QueryResults::ncol() const {
