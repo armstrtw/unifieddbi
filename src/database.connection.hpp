@@ -70,9 +70,6 @@ public:
   // do not delete createTableFromTypes
   void createTable(const char* tableName, std::vector<std::string>& colnames, std::vector<TypeConverter*>& typeConverters);
 
-  // implemented here, but specific implementations might have allowed characters in colnames
-  virtual void cleanColnames(std::vector<std::string>& colnames, const std::string& badString, const std::string& replaceString) const;
-
   // factory method:
   static DatabaseConnection* init(const char* dbType);
 

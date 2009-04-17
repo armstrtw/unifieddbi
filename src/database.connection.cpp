@@ -111,12 +111,6 @@ SEXP DatabaseConnection::readTable(const char* tableName) {
   return res->fetch(-1);
 }
 
-void DatabaseConnection::cleanColnames(vector<string>& colnames, const string& badString, const string& replaceString) const {
-  for(vector<string>::iterator iter = colnames.begin(); iter != colnames.end(); iter++) {
-    cleanString(*iter, badString, replaceString);
-  }
-}
-
 // this function needs the whole object to determine type
 // for these reasons
 // 1) POSIXct -- uses the same R class to represent both date and timestamp
