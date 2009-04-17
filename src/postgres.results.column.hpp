@@ -140,6 +140,14 @@ namespace postgres {
     void setValue(SEXP x, const R_len_t row) const;
   };
 
+  class TIMESTAMPOID_binary : public PostgresResultColumn {
+    TIMESTAMPOID_binary(const PGresult *res, const int position);
+    friend class PostgresColumnFactory;
+  public:
+    SEXP allocateSEXP(const R_len_t nrows) const;
+    void setValue(SEXP x, const R_len_t row) const;
+  };
+
 
 } // namespace postgres
 #endif //POSTGRES_RESULTS_COLUMN_HPP

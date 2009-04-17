@@ -274,3 +274,32 @@ void BOOLOID_binary::setValue(SEXP x, const R_len_t row) const {
     LOGICAL(x)[row] = (*from_pg) ? 1 : 0;
   }
 }
+
+TIMESTAMPOID_binary::TIMESTAMPOID_binary(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP TIMESTAMPOID_binary::allocateSEXP(const R_len_t nrows) const {
+  SEXP ans;
+  PROTECT(ans = allocVector(REALSXP, nrows));
+
+  // create and add dates class to dates object
+  SEXP r_dates_class;
+  PROTECT(r_dates_class = allocVector(STRSXP, 2));
+  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
+  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
+  classgets(ans, r_dates_class);
+  UNPROTECT(2); // ans, r_dates_class
+  return ans;
+}
+
+void TIMESTAMPOID_binary::setValue(SEXP x, const R_len_t row) const {
+  const double pg_epoch = 946684800;
+  //const double microseconds_in_second = 1e6;
+  if(isNullValue(row)) {
+    REAL(x)[row] = NA_REAL;
+  } else {
+    const char *from_pg = getValue(row);
+    const uint64_t swap = ntohll(*reinterpret_cast<const uint64_t*>(from_pg));
+    REAL(x)[row] =  *reinterpret_cast<const double*>(&swap) + pg_epoch;
+  }
+}

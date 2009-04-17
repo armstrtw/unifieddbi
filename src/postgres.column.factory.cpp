@@ -71,6 +71,9 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
     case CHAROID:
     case BPCHAROID:
       return new text_char(res_, i);
+    case TIMESTAMPOID:
+    case TIMESTAMPTZOID:
+      return new TIMESTAMPOID_binary(res_, i);
     default:
       cerr << "conversion not supported using null conversion for column number: " << i << endl;
       cerr << "native oid value: " << PQftype(res_,i) << endl;
@@ -82,7 +85,7 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
 void PostgresColumnFactory::init(std::vector<QueryResultColumn*>& ans) const {
   const int ncols = PQnfields(res_);
   for(int i = 0; i < ncols; i++) {
-    cout << "PostgresColumnFactory: init column: " << i << endl;
+    //cout << "PostgresColumnFactory: init column: " << i << endl;
     ans.push_back(createColumn(i));
   }
 }
