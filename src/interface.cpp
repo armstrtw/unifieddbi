@@ -164,7 +164,7 @@ SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp) {
 // there should just be overwrite, which will drop the table if it exists
 // append should be automatic if the table exists, and should fail if the row formats don't match up
 // having both overwrite and append just complicates the logic of this function
-SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp , SEXP value_sexp, SEXP writeRowNames_sexp, SEXP overWrite_sexp, SEXP append_sexp) {
+SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP writeRowNames_sexp, SEXP overWrite_sexp, SEXP append_sexp) {
   cout << "ignoring append argument" << endl;
   SEXP ans;
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
@@ -180,10 +180,11 @@ SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp , SEXP value_sexp, SEX
 
   if(conn->existsTable(tableName) && overWrite) {
     if(!conn->removeTable(tableName)) {
-      cerr << "could not remove existing table." << endl;
+      cerr << "could not remove existing table (aborting)." << endl;
       return ScalarInteger(0);
     }
   }
+
   //try {
   int rows = conn->writeTable(tableName, value_sexp, writeRowNames);
   //} catch (...) { // bad write?
@@ -191,6 +192,22 @@ SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp , SEXP value_sexp, SEX
   //}
   PROTECT(ans = allocVector(INTSXP,1));
   INTEGER(ans)[0] = rows;
+  UNPROTECT(1);
+  return ans;
+}
+
+SEXP dbExistsTable(SEXP dbi_conn_sexp, SEXP tableName_sexp) {
+  SEXP ans;
+  DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
+  if(!conn) {
+    // throw bad_connection_object
+    cerr << "bad database connection." << endl;
+    return R_NilValue;
+  }
+
+  const char* tableName = CHAR(STRING_ELT(tableName_sexp,0));
+  PROTECT(ans = allocVector(LGLSXP,1));
+  LOGICAL(ans)[0] = static_cast<int>(conn->existsTable(tableName));
   UNPROTECT(1);
   return ans;
 }

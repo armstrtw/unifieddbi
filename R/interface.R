@@ -43,5 +43,9 @@ dbDisconnect <- function(dbi.conn) {
 }
 
 dbWriteTable <- function(dbi.conn, tableName, value, row.names=FALSE, overwrite=FALSE, append=FALSE) {
-  .Call("dbWriteTable", dbi.conn, tableName, value, row.names, overwrite, append, PACKAGE="unifiedDBI")
+    .Call("dbWriteTable", dbi.conn, tableName, value, row.names, overwrite, append, PACKAGE="unifiedDBI")
+}
+
+dbExistsTable <- function(dbi.conn, tableName) {
+    .Call("dbExistsTable", dbi.conn, tableName, PACKAGE="unifiedDBI")
 }

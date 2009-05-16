@@ -114,14 +114,25 @@ SEXP PostgresConnection::listTables() {
   return res->fetch(-1);
 }
 
-bool PostgresConnection::existsTable(const char* tableName) {
+bool PostgresConnection::existsTable(const char* tableName_char) {
   stringstream query;
+  string tableName(tableName_char);
+  string schemaName("public");
+
   if(!connectionValid()) {
     cerr << "cannot connect to databse" << endl;
     return false;
   }
 
-  query << "select count(*) from pg_tables where tablename = '" << tableName << "'";
+  // find schema name
+  string::size_type pos = tableName.find(".");
+  if(pos != string::npos && pos != tableName.size()) {
+    schemaName = tableName.substr(0, pos);
+    tableName = tableName.substr(pos + 1, tableName.size());
+    cout << schemaName << endl;
+    cout << tableName << endl;
+  }
+  query << "select count(*) from pg_tables where schemaname = '" << schemaName <<  "' and tablename = '" << tableName << "'";
   PGresult* res = PQexec(conn_,query.str().c_str());
 
   if(PQresultStatus(res)==PGRES_TUPLES_OK && PQntuples(res)) {
