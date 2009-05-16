@@ -8,7 +8,8 @@ export(
        dbClearResult,
        dbDisconnect,
        dbWriteTable,
-       dbExistsTable
+       dbExistsTable,
+       dbListTables
        ##dbCommit,
        ##dbRollback
        )

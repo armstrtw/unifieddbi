@@ -211,3 +211,14 @@ SEXP dbExistsTable(SEXP dbi_conn_sexp, SEXP tableName_sexp) {
   UNPROTECT(1);
   return ans;
 }
+
+SEXP dbListTables(SEXP dbi_conn_sexp) {
+  DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
+  if(!conn) {
+    // throw bad_connection_object
+    cerr << "bad database connection." << endl;
+    return R_NilValue;
+  }
+
+  return conn->listTables();
+}

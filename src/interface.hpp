@@ -41,6 +41,7 @@ extern "C" {
   SEXP dbClearResult(SEXP dbi_query_results_sexp);
   SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP writeRowNames_sexp, SEXP overWrite_sexp, SEXP append_sexp);
   SEXP dbExistsTable(SEXP dbi_conn_sexp, SEXP tableName_sexp);
+  SEXP dbListTables(SEXP dbi_conn_sexp);
 }
 
 #endif // INTERFACE_HPP

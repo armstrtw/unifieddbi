@@ -108,7 +108,7 @@ SEXP PostgresConnection::listTables() {
     return R_NilValue;
   }
 
-  const char* query = "select tablename from pg_tables where schemaname !='information_schema' and schemaname !='pg_catalog'";
+  const char* query = "select schemaname, tablename from pg_tables where schemaname !='information_schema' and schemaname !='pg_catalog'";
   QueryResults* res = sendQuery(query);
   // FIXME: convert to string vector...
   return res->fetch(-1);

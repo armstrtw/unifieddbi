@@ -46,6 +46,7 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
     case TEXTOID:
     case CHAROID:
     case BPCHAROID:
+    case NAMEOID:
       return new text_char(res_, i);
     case TIMESTAMPOID:
       return new TIMESTAMPOID_char(res_, i);
@@ -70,6 +71,7 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
     case TEXTOID:
     case CHAROID:
     case BPCHAROID:
+    case NAMEOID:
       return new text_char(res_, i);
     case TIMESTAMPOID:
     case TIMESTAMPTZOID:

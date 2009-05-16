@@ -49,3 +49,7 @@ dbWriteTable <- function(dbi.conn, tableName, value, row.names=FALSE, overwrite=
 dbExistsTable <- function(dbi.conn, tableName) {
     .Call("dbExistsTable", dbi.conn, tableName, PACKAGE="unifiedDBI")
 }
+
+dbListTables <- function(dbi.conn) {
+    .Call("dbListTables", dbi.conn, PACKAGE="unifiedDBI")
+}
