@@ -28,6 +28,7 @@
 #include <Rutilities.hpp>
 
 #include "database.connection.hpp"
+#include "database.errors.hpp"
 #include "postgres.connection.hpp"
 #include "generic.type.converter.hpp"
 #include "conversion.utils.hpp"
@@ -57,7 +58,7 @@ DatabaseConnection* DatabaseConnection::init(const char* dbType) {
     //if(dbType_s == "postgres") {
     return new postgres::PostgresConnection();
   } else {
-    throw DatabaseConnection::DriverNotSupported(dbType_s.c_str());
+    throw DriverNotSupported(dbType_s.c_str());
   }
 }
 
@@ -209,6 +210,6 @@ TypeConverter* DatabaseConnection::getTypeConverterFromBasicType(SEXP value_sexp
       /* these will be bytea */
     case CPLXSXP: /* need a complex type in postgres before this can be supported */
     default:
-      throw DatabaseConnection::TypeNotSupported("(no class attribute found)");
+      throw TypeNotSupported("(no class attribute found)");
     }
 }

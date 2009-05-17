@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include "interface.hpp"
+#include "database.errors.hpp"
 #include "postgres.connection.hpp"
 #include "query.results.hpp"
 
@@ -102,7 +103,7 @@ SEXP dbConnect(SEXP dbType_sexp,
   // for this specific dbType
   try {
     conn = DatabaseConnection::init(dbType);
-  } catch (DatabaseConnection::DriverNotSupported& e) {
+  } catch (DriverNotSupported& e) {
     cerr << e.what() << endl;
     return R_NilValue;
   }
@@ -115,7 +116,7 @@ SEXP dbConnect(SEXP dbType_sexp,
     } else {
       conn->connect(user,pass,host,port,tty,dbName,options);
     }
-  } catch(DatabaseConnection::BadDatabaseConnection& e) {
+  } catch(BadDatabaseConnection& e) {
     cerr << e.what() << endl;
     return R_NilValue;
   }

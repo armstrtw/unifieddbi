@@ -72,24 +72,6 @@ public:
 
   // factory method:
   static DatabaseConnection* init(const char* dbType);
-
-  // all implementations should use these errors
-  class BadDatabaseConnection : public std::logic_error {
-  public:
-    BadDatabaseConnection(const char* conn_error)
-      : std::logic_error(std::string("Database connection error: ") + std::string(conn_error)) {}
-  };
-
-  class DriverNotSupported : public std::logic_error {
-  public:
-    DriverNotSupported(const char* dbType)
-      : std::logic_error(std::string("Cannot create database driver of type: ") + std::string(dbType)) {}
-  };
-  class TypeNotSupported : public std::logic_error {
-  public:
-    TypeNotSupported(const char* RObject_Type)
-      : std::logic_error(std::string("Cannot convert R object of class/type: ") + std::string(RObject_Type)) {}
-  };
 };
 
 
