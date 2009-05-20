@@ -27,3 +27,8 @@ DriverNotSupported::DriverNotSupported(const char* dbType)
 TypeNotSupported::TypeNotSupported(const char* RObject_Type)
   : std::logic_error(std::string("Cannot convert R object of class/type: ") + std::string(RObject_Type)) {}
 
+// FIXME: add another arg which is R object type, so we can see the exact mapping routine that
+// needs to be built
+MapToTypeNotImplemented::MapToTypeNotImplemented(const char* dbType)
+  : std::logic_error(std::string("Cannot convert R object to database type: ") + std::string(dbType)) {}
+

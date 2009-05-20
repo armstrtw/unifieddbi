@@ -25,6 +25,7 @@
 
 #include <Rutilities.hpp>
 #include "postgres.connection.hpp"
+#include "postgres.column.writer.hpp"
 #include "utils.hpp"
 
 using std::cout;
@@ -85,21 +86,27 @@ void PostgresConnection::disConnect() {
 }
 
 bool PostgresConnection::transaction_begin() {
-  PostgresResults* beginResults = sendQuery("BEGIN;");
-  // FIXME: check results
-  return true;
+  PostgresResults* res = sendQuery("BEGIN;");
+  if(res->valid()) {
+    return true;
+  }
+  return false;
 }
 
 bool PostgresConnection::rollback() {
-  PostgresResults* rollbackResults = sendQuery("ROLLBACK;");
-  // FIXME: check results
-  return true;
+  PostgresResults* res = sendQuery("ROLLBACK;");
+  if(res->valid()) {
+    return true;
+  }
+  return false;
 }
 
 bool PostgresConnection::commit() {
-  PostgresResults* commitResults = sendQuery("COMMIT;");
-  // FIXME: check results
-  return true;
+  PostgresResults* res = sendQuery("COMMIT;");
+  if(res->valid()) {
+    return true;
+  }
+  return false;
 }
 
 SEXP PostgresConnection::listTables() {
@@ -120,7 +127,7 @@ bool PostgresConnection::existsTable(const char* tableName_char) {
   string schemaName("public");
 
   if(!connectionValid()) {
-    cerr << "cannot connect to databse" << endl;
+    cerr << "cannot connect to database" << endl;
     return false;
   }
 
@@ -129,16 +136,14 @@ bool PostgresConnection::existsTable(const char* tableName_char) {
   if(pos != string::npos && pos != tableName.size()) {
     schemaName = tableName.substr(0, pos);
     tableName = tableName.substr(pos + 1, tableName.size());
-    cout << schemaName << endl;
-    cout << tableName << endl;
   }
   query << "select count(*) from pg_tables where schemaname = '" << schemaName <<  "' and tablename = '" << tableName << "'";
   PGresult* res = PQexec(conn_,query.str().c_str());
 
   if(PQresultStatus(res)==PGRES_TUPLES_OK && PQntuples(res)) {
-    // FIXME: assuming integer return value
-    // add check for OID value
-    if(atoi(PQgetvalue(res, 0, 0)) == 1) {
+    int nrows = atoi(PQgetvalue(res, 0, 0));
+    PQclear(res);
+    if(nrows == 1) {
       return true;
     }
   }
@@ -152,4 +157,85 @@ PostgresResults* PostgresConnection::sendQuery(const char* query) {
   }
   cerr << "bad connection to database" << endl;
   return static_cast<PostgresResults*>(NULL);
+}
+
+void PostgresConnection::getOIDs(const char* tableName, vector<Oid>& oids) {
+  stringstream query;
+  query << "SELECT atttypid FROM pg_attribute WHERE attrelid = '" << tableName << "'::regclass and attnum > 0 and attisdropped = FALSE";
+  PGresult* res = PQexec(conn_, query.str().c_str());
+  if(PQresultStatus(res)==PGRES_TUPLES_OK && PQntuples(res)) {
+    for(int i = 0; i < PQntuples(res); i++) {
+      oids.push_back(atoi(PQgetvalue(res, i, 0)));
+    }
+  }
+  PQclear(res);
+}
+
+// FIXME: look up colnames to make sure we have proper order
+// and only write the columns that we match
+std::string genInsertQuery(const char* tableName, const int ncols) {
+  stringstream query;
+  query << "INSERT INTO " << tableName << " VALUES (";
+  for(int i = 0; i < ncols; i++) {
+    query << "$" << i + 1;
+    if( i < (ncols -1)) {
+      query << ",";
+    }
+  }
+  query << ")";
+  return query.str();
+}
+
+int PostgresConnection::write(const char * tableName, const vector<ColumnForWriting>& cols, const int nrows) {
+  int currentRow = 0;
+  PGresult* res = NULL;
+  vector<Oid> oids;
+  vector<PostgresColumnWriter*> pg_col_writers;
+
+  getOIDs(tableName,oids);
+  int numCols = cols.size();
+  std::string command(genInsertQuery(tableName, numCols));
+  Oid* paramTypes = new Oid[numCols]; for(int i = 0; i < numCols; i++) { paramTypes[i] = oids[i]; }
+  char** paramValues = new char*[numCols];
+  int* paramLengths = new int[numCols];
+  int* paramFormats = new int[numCols];
+  int resultFormat = 1;
+
+  for(int i = 0; i < numCols; i++) {
+    PostgresColumnWriter* pgw = PostgresColumnWriter::createPostgresColumnWriter(paramTypes[i],cols[i],paramValues[i],paramLengths[i]);
+    pg_col_writers.push_back(pgw);
+  }
+
+  for(int i = 0; i < numCols; i++) {
+    paramFormats[i] = pg_col_writers[i]->getFormat();
+  }
+
+  transaction_begin();
+  do {
+    PQclear(res);
+    // update pointer set
+    for(int i = 0; i < numCols; i++) {
+      pg_col_writers[i]->update(currentRow);
+    }
+
+    // insert
+    res = PQexecParams(conn_,
+                       command.c_str(),
+                       numCols,
+                       paramTypes,
+                       paramValues,
+                       paramLengths,
+                       paramFormats,
+                       resultFormat);
+    ++currentRow;
+  } while(currentRow < nrows && PQresultStatus(res) == PGRES_COMMAND_OK);
+
+  if(PQresultStatus(res) != PGRES_COMMAND_OK) {
+    cerr << "status:" << PQresStatus(PQresultStatus(res)) << endl;
+    rollback();
+    // throw...
+    return 0;
+  }
+  commit();
+  return currentRow;
 }

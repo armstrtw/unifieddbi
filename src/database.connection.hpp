@@ -24,15 +24,19 @@
 #include <stdexcept>
 #include <Rinternals.h>
 
-#include "type.converter.hpp"
+#include "column.for.writing.hpp"
 #include "query.results.hpp"
+#include "r.column.types.hpp"
 
 class DatabaseConnection {
+private:
+  void fixColnames(std::vector<std::string>& colnames);
 protected:
   virtual std::string getBooleanType() const = 0;
   virtual std::string getIntegerType() const = 0;
   virtual std::string getDoubleType() const = 0;
   virtual std::string getCharacterType() const = 0;
+  virtual std::string getFactorType() const = 0;
   virtual std::string getDateTimeType() const = 0;
   virtual std::string getDateType() const = 0;
 public:
@@ -55,20 +59,14 @@ public:
   virtual SEXP listTables() = 0;
   virtual bool existsTable(const char* tableName) = 0;
   virtual QueryResults* sendQuery(const char* query) = 0;
+  virtual int write(const char * tableName, const std::vector<ColumnForWriting>& cols, const int nrows) = 0;
 
   // implemented in this class
-  virtual TypeConverter* getTypeConverter(SEXP x);
-  virtual TypeConverter* getTypeConverterFromBasicType(SEXP value_sexp);
   bool removeTable(const char* tableName);
   SEXP readTable(const char* tableName);
-
-  // specific implementations can define writeTable
-  // this implementation will use text conversions: "insert into _table_ values (1,2,3)"
-  // where the rows are converted to text using TypeConverters
-  virtual int writeTable(const char* tableName, SEXP value_sexp, const bool writeRowNames);
-
-  // do not delete createTableFromTypes
-  void createTable(const char* tableName, std::vector<std::string>& colnames, std::vector<TypeConverter*>& typeConverters);
+  void createTable(const char* tableName, SEXP value_sexp, const bool writeRowNames);
+  std::string getNativeType(RColumnType);
+  int writeTable(const char* tableName, SEXP value_sexp, const bool writeRowNames);
 
   // factory method:
   static DatabaseConnection* init(const char* dbType);

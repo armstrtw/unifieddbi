@@ -15,30 +15,24 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef DATABASE_ERRORS_HPP
-#define DATABASE_ERRORS_HPP
+#ifndef COLUMN_FOR_WRITING_HPP
+#define COLUMN_FOR_WRITING_HPP
 
-#include <stdexcept>
+#include <Rinternals.h>
 
-  // all implementations should use these errors
-  class BadDatabaseConnection : public std::logic_error {
-  public:
-    BadDatabaseConnection(const char* conn_error);
-  };
+////////////////////////////////////////////////////////////////////////////
+//    encompasses a column to be written to the database                  //
+//    i.e. it holds the proper offset for matrix types in R               //
+//    in which different columns are represented as offsets from the same //
+//    base memory address                                                 //
+////////////////////////////////////////////////////////////////////////////
+class ColumnForWriting {
+public:
+  SEXP sexp;
+  R_len_t offset;
+  //std::string colname_;
+  ColumnForWriting(const SEXP sexp_, const R_len_t offset_) : sexp(sexp_), offset(offset_) {}
+};
 
-  class DriverNotSupported : public std::logic_error {
-  public:
-    DriverNotSupported(const char* dbType);
-  };
 
-  class TypeNotSupported : public std::logic_error {
-  public:
-    TypeNotSupported(const char* RObject_Type);
-  };
-
-  class MapToTypeNotImplemented : public std::logic_error {
-  public:
-    MapToTypeNotImplemented(const char* dbType);
-  };
-
-#endif // DATABASE_ERRORS_HPP
+#endif // COLUMN_FOR_WRITING_HPP

@@ -30,10 +30,10 @@
 #include "database.connection.hpp"
 #include "database.errors.hpp"
 #include "postgres.connection.hpp"
-#include "generic.type.converter.hpp"
 #include "conversion.utils.hpp"
 #include "utils.hpp"
 #include "r.objects.hpp"
+#include "r.column.types.hpp"
 
 using std::vector;
 using std::string;
@@ -62,21 +62,36 @@ DatabaseConnection* DatabaseConnection::init(const char* dbType) {
   }
 }
 
-void DatabaseConnection::createTable(const char* tableName, vector<string>& colnames, vector<TypeConverter*>& typeConverters) {
-  stringstream query;
-
-  if(typeConverters.size() != colnames.size()) {
-    cerr << "colnames not the right size" << endl;
-    return;
-  }
-
+void DatabaseConnection::fixColnames(vector<string>& colnames) {
   cleanColnames(colnames, string("."),"_");
   cleanColnames(colnames, string("("),"");
   cleanColnames(colnames, string(")"),"");
   cleanColnames(colnames, string(" "),"_");
+}
+
+void DatabaseConnection::createTable(const char* tableName, SEXP value_sexp, const bool writeRowNames) {
+
+  std::vector<string> colnames;
+  std::vector<SEXP> sexps;
+  std::vector<RColumnType> colTypes;
+  stringstream query;
+
+  Robject* robj = Robject::factory(value_sexp);
+
+  if(writeRowNames) {
+    colnames.push_back("id");
+    colTypes.push_back(charT);
+  }
+
+  robj->getColnames(colnames);
+  robj->getSEXPS(sexps);
+  delete robj;
+
+  fixColnames(colnames);
+
   query << "CREATE TABLE " << tableName << endl << "(";
   for(size_t i = 0; i < colnames.size(); i++) {
-    query << colnames[i] <<  " " << typeConverters[i]->getNativeType();
+    query << colnames[i] <<  " " << getNativeType(getColumnType(sexps[i]));
     if(i < (colnames.size() - 1)) {
       query << ",";
     }
@@ -90,8 +105,13 @@ void DatabaseConnection::createTable(const char* tableName, vector<string>& coln
 }
 
 int DatabaseConnection::writeTable(const char* tableName, SEXP value_sexp, const bool writeRowNames) {
-  Robject* my_sexp = Robject::factory(value_sexp);
-  return my_sexp->writeToDatabase(this, tableName, writeRowNames);
+  if(!existsTable(tableName)) {
+    createTable(tableName, value_sexp, writeRowNames);
+  }
+  Robject* robj = Robject::factory(value_sexp);
+  vector<ColumnForWriting> write_job;
+  robj->createWriteJob(write_job, writeRowNames);
+  return write(tableName, write_job, robj->nrow());
 }
 
 bool DatabaseConnection::removeTable(const char* tableName) {
@@ -99,7 +119,6 @@ bool DatabaseConnection::removeTable(const char* tableName) {
   query <<  "drop table " << tableName;
   QueryResults* res = sendQuery(query.str().c_str());
   if(res->valid()) {
-    // FIXME: send total rows affected
     return true;
   }
   return false;
@@ -112,104 +131,14 @@ SEXP DatabaseConnection::readTable(const char* tableName) {
   return res->fetch(-1);
 }
 
-// this function needs the whole object to determine type
-// for these reasons
-// 1) POSIXct -- uses the same R class to represent both date and timestamp
-//    the only way to determine which database type to use is to scan the dates
-//    to see if there are any with precision greater than %Y-%m-%d
-TypeConverter* DatabaseConnection::getTypeConverter(SEXP value_sexp) {
-  vector<string> object_class;
-  sexp2string(getAttrib(value_sexp,R_ClassSymbol), back_inserter(object_class));
-
-  // remove asis class
-  // since it's not the class we really care about
-  // need to do this before anything else
-  if(!object_class.empty() && object_class[0]=="AsIs") {
-    object_class.erase(object_class.begin());
+string DatabaseConnection::getNativeType(RColumnType dbColType) {
+  switch(dbColType) {
+  case boolT: return getBooleanType();
+  case intT: return getIntegerType();
+  case doubleT: return getDoubleType();
+  case charT: return getCharacterType();
+  case factorT: return getFactorType();
+  case dateTimeT: return getDateTimeType();
+  case dateT: return getDateType();
   }
-
-  if(object_class.empty()) {
-    return getTypeConverterFromBasicType(value_sexp);
-  }
-
-  if(object_class[0]=="integer") {
-    return new GenericTypeConverter_integer(value_sexp,getIntegerType());
-  }
-
-  if(object_class[0]=="numeric") {
-    return new GenericTypeConverter_double(value_sexp,getDoubleType());
-  }
-
-  if(object_class[0]=="POSIXt") {
-    if(object_class.size() > 1 && object_class[1]=="POSIXct") {
-      if(posixHasTimes(value_sexp)) {
-	return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp,getDateTimeType());
-      } else {
-        cout << "returning GenericTypeConverter_dateFromPOSIXct for POSIXct" << endl;
-	return new GenericTypeConverter_dateFromPOSIXct(value_sexp,getDateType());
-      }
-    }
-    if(object_class.size() > 1 && object_class[1]=="POSIXlt") {
-      if(posixHasTimes(value_sexp)) {
-	//FIXME: return new GenericTypeConverter_datetimeFromPOSIXlt(value_sexp,"timestamp with timezone");
-	return new GenericTypeConverter_default(value_sexp,"integer");
-      } else {
-	return new GenericTypeConverter_dateFromPOSIXlt(value_sexp,getDateType());
-      }
-    }
-  }
-
-  // "POSIXct" in 1st position (this can happen when people add the class manually)
-  if(object_class[0]=="POSIXct") {
-    if(posixHasTimes(value_sexp)) {
-      return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp,getDateTimeType());
-    } else {
-      return new GenericTypeConverter_dateFromPOSIXct(value_sexp,getDateType());
-    }
-  }
-
-  // "POSIXlt" in 1st position (this can happen when people add the class manually)
-  if(object_class[0]=="POSIXlt") {
-    if(posixHasTimes(value_sexp)) {
-      //FIXME: return new GenericTypeConverter_datetimeFromPOSIXct(value_sexp);
-      return new GenericTypeConverter_default(value_sexp,"integer");
-    } else {
-      return new GenericTypeConverter_dateFromPOSIXlt(value_sexp,getDateType());
-    }
-  }
-
-  if(object_class[0]=="factor") {
-    return new GenericTypeConverter_charFromFactor(value_sexp,getCharacterType());
-  }
-
-  if(object_class[0]=="character") {
-    return new GenericTypeConverter_char(value_sexp,getCharacterType());
-  }
-
-  if(object_class[0]=="logical") {
-    return new GenericTypeConverter_boolean(value_sexp,getBooleanType());
-  }
-
-  // not a common class, so just use basic type to convert
-  return getTypeConverterFromBasicType(value_sexp);
-}
-
-TypeConverter* DatabaseConnection::getTypeConverterFromBasicType(SEXP value_sexp) {
-  switch(TYPEOF(value_sexp)) {
-    case LGLSXP:
-      return new GenericTypeConverter_boolean(value_sexp, getBooleanType());
-    case INTSXP:
-      return new GenericTypeConverter_integer(value_sexp, getIntegerType());
-    case REALSXP:
-      return new GenericTypeConverter_double(value_sexp, getDoubleType());
-    case STRSXP:
-      return new GenericTypeConverter_char(value_sexp, getCharacterType());
-    case EXTPTRSXP:
-    case WEAKREFSXP:
-    case RAWSXP:
-      /* these will be bytea */
-    case CPLXSXP: /* need a complex type in postgres before this can be supported */
-    default:
-      throw TypeNotSupported("(no class attribute found)");
-    }
 }

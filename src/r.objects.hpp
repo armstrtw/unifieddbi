@@ -19,17 +19,27 @@
 #define R_OBJECTS_HPP
 
 #include <string>
+#include <vector>
 #include <Rinternals.h>
-#include "database.connection.hpp"
+
+#include "column.for.writing.hpp"
 
 class Robject {
 protected:
   SEXP sexp_;
 public:
+  static Robject* factory(SEXP x);
   Robject(SEXP x) : sexp_(x) {}
   virtual ~Robject() {}
-  static Robject* factory(SEXP x);
-  virtual int writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames) = 0;
+  virtual R_len_t nrow() const = 0;
+  virtual R_len_t ncol() const = 0;
+  virtual bool hasRownames() const = 0;
+  virtual bool hasColnames() const = 0;
+  virtual SEXP getRownames() const = 0;
+  virtual SEXP getColnames() const = 0;
+  virtual void getColnames(std::vector<std::string>& ans) const = 0;
+  virtual void getSEXPS(std::vector<SEXP>& ans) const = 0;
+  virtual void createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const = 0;
 };
 
 class RDataFrame : public Robject {
@@ -37,11 +47,15 @@ private:
 friend class Robject;
   RDataFrame(SEXP x) : Robject(x) {}
 public:
+  R_len_t nrow() const;
+  R_len_t ncol() const;
   bool hasRownames() const;
   bool hasColnames() const;
   SEXP getRownames() const;
   SEXP getColnames() const;
-  int writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames);
+  void getColnames(std::vector<std::string>& ans) const;
+  void getSEXPS(std::vector<SEXP>& ans) const;
+  void createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const;
 };
 
 
@@ -50,11 +64,15 @@ private:
   friend class Robject;
   RMatrix(SEXP x) : Robject(x) {}
 public:
+  R_len_t nrow() const;
+  R_len_t ncol() const;
   bool hasRownames() const;
   bool hasColnames() const;
   SEXP getRownames() const;
   SEXP getColnames() const;
-  int writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames);
+  void getColnames(std::vector<std::string>& ans) const;
+  void getSEXPS(std::vector<SEXP>& ans) const;
+  void createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const;
 };
 
 class RVector : public Robject {
@@ -62,9 +80,15 @@ private:
   friend class Robject;
   RVector(SEXP x) : Robject(x) {}
 public:
-  bool hasNames() const;
-  SEXP getNames() const;
-  int writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames);
+  R_len_t nrow() const;
+  R_len_t ncol() const;
+  bool hasRownames() const;
+  bool hasColnames() const;
+  SEXP getRownames() const;
+  SEXP getColnames() const;
+  void getColnames(std::vector<std::string>& ans) const;
+  void getSEXPS(std::vector<SEXP>& ans) const;
+  void createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const;
 };
 
 #endif // R_OBJECTS_HPP

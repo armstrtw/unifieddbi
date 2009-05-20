@@ -15,30 +15,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef DATABASE_ERRORS_HPP
-#define DATABASE_ERRORS_HPP
+#ifndef R_COLUMN_TYPES_HPP
+#define R_COLUMN_TYPES_HPP
 
-#include <stdexcept>
+#include <Rinternals.h>
 
-  // all implementations should use these errors
-  class BadDatabaseConnection : public std::logic_error {
-  public:
-    BadDatabaseConnection(const char* conn_error);
-  };
+enum RColumnType {boolT, intT, doubleT, charT, factorT, dateTimeT, dateT, notDefinedT};
 
-  class DriverNotSupported : public std::logic_error {
-  public:
-    DriverNotSupported(const char* dbType);
-  };
+RColumnType getColumnType(const SEXPTYPE sptype);
+RColumnType getColumnType(SEXP value_sexp);
 
-  class TypeNotSupported : public std::logic_error {
-  public:
-    TypeNotSupported(const char* RObject_Type);
-  };
-
-  class MapToTypeNotImplemented : public std::logic_error {
-  public:
-    MapToTypeNotImplemented(const char* dbType);
-  };
-
-#endif // DATABASE_ERRORS_HPP
+#endif // R_COLUMN_TYPES_HPP

@@ -35,13 +35,15 @@ namespace postgres {
     void verifyConnection();
     bool connectionValid();
     std::string getNativeType(SEXPTYPE basic_type);
+    void getOIDs(const char* tableName,std::vector<Oid>& oids);
   protected:
-  std::string getBooleanType() const { return std::string("boolean"); }
-  std::string getIntegerType() const { return std::string("integer"); }
-  std::string getDoubleType() const { return std::string("double precision"); }
-  std::string getCharacterType() const { return std::string("character varying"); }
-  std::string getDateTimeType() const { return std::string("timestamp with time zone"); }
-  std::string getDateType() const { return std::string("date"); }
+    std::string getBooleanType() const { return std::string("boolean"); }
+    std::string getIntegerType() const { return std::string("integer"); }
+    std::string getDoubleType() const { return std::string("double precision"); }
+    std::string getCharacterType() const { return std::string("character varying"); }
+    std::string getFactorType() const { return std::string("character varying"); }
+    std::string getDateTimeType() const { return std::string("timestamp with time zone"); }
+    std::string getDateType() const { return std::string("date"); }
   public:
     void connect(const char* connectionString);
     void connect(const char* user,
@@ -57,6 +59,7 @@ namespace postgres {
     bool commit();
     SEXP listTables();
     bool existsTable(const char* tableName);
+    int write(const char * tableName, const std::vector<ColumnForWriting>& cols, const int nrows);
     PostgresResults* sendQuery(const char* query);
   };
 } // namespace postgres

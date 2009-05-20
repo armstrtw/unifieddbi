@@ -29,6 +29,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+
 Robject* Robject::factory(SEXP x) {
   SEXP r_class = getAttrib(x,R_ClassSymbol);
   const std::string r_class_str(CHAR(STRING_ELT(r_class,0)));
@@ -63,79 +64,143 @@ SEXP RDataFrame::getColnames() const {
   return getAttrib(sexp_, R_NamesSymbol);
 }
 
-bool RVector::hasNames() const {
-  return (getNames() == R_NilValue) ? false : true;
+void RDataFrame::getColnames(std::vector<std::string>& ans) const {
+  sexp2string(getColnames(),back_inserter(ans));
 }
 
-SEXP RVector::getNames() const {
+void RDataFrame::getSEXPS(std::vector<SEXP>& ans) const {
+  for(R_len_t i = 0; i < length(sexp_); i++) {
+    ans.push_back(VECTOR_ELT(sexp_,i));
+  }
+}
+
+void RDataFrame::createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const {
+  if(writeRowNames) {
+    write_job.push_back(ColumnForWriting(getRownames(),0));
+  }
+
+  for(R_len_t i = 0; i < ncol(); i++) {
+    write_job.push_back(ColumnForWriting(VECTOR_ELT(sexp_,i),0));
+  }
+}
+
+R_len_t RDataFrame::nrow() const {
+  if(sexp_==R_NilValue) {
+    return 0;
+  }
+  return length(VECTOR_ELT(sexp_,0));
+}
+
+R_len_t RDataFrame::ncol() const {
+  if(sexp_==R_NilValue) {
+    return 0;
+  }
+  return length(sexp_);
+}
+
+bool RMatrix::hasRownames() const {
+  return (getRownames() == R_NilValue) ? false : true;
+}
+
+bool RMatrix::hasColnames() const {
+  return (getColnames() == R_NilValue) ? false : true;
+}
+
+SEXP RMatrix::getRownames() const {
+  SEXP dimnames = getAttrib(sexp_, R_DimNamesSymbol);
+
+  if(dimnames==R_NilValue) {
+    return R_NilValue;
+  }
+
+  return VECTOR_ELT(dimnames, 0);
+}
+
+SEXP RMatrix::getColnames() const {
+ SEXP dimnames = getAttrib(sexp_, R_DimNamesSymbol);
+
+  if(dimnames==R_NilValue) {
+    return R_NilValue;
+  }
+  return VECTOR_ELT(dimnames, 1);
+}
+
+void RMatrix::getColnames(std::vector<std::string>& ans) const {
+  sexp2string(getColnames(),back_inserter(ans));
+}
+
+void RMatrix::getSEXPS(std::vector<SEXP>& ans) const {
+  for(R_len_t i = 0; i < length(sexp_); i++) {
+    ans.push_back(sexp_);
+  }
+}
+
+void RMatrix::createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const {
+  if(writeRowNames) {
+    write_job.push_back(ColumnForWriting(getRownames(),0));
+  }
+
+  for(R_len_t i = 0; i < ncol(); i++) {
+    write_job.push_back(ColumnForWriting(sexp_, i * nrow()));
+  }
+}
+
+R_len_t RMatrix::nrow() const {
+  if(sexp_==R_NilValue) {
+    return 0;
+  }
+
+  return nrows(sexp_);
+}
+
+R_len_t RMatrix::ncol() const {
+  if(sexp_==R_NilValue) {
+    return 0;
+  }
+  return ncols(sexp_);
+}
+
+bool RVector::hasRownames() const {
+  return (getRownames() == R_NilValue) ? false : true;
+}
+
+bool RVector::hasColnames() const {
+  return false;
+}
+
+SEXP RVector::getColnames() const {
+  return R_NilValue;
+}
+
+SEXP RVector::getRownames() const {
   return getAttrib(sexp_, R_NamesSymbol);
 }
 
-int RMatrix::writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames) {
-  cout << "RMatrix::writeToDatabase" << endl;
-  cout << "not implemented yet." << endl;
-  return 0;
+void RVector::getColnames(std::vector<std::string>& ans) const {
+  return;
 }
 
-int RVector::writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames) {
-  cout << "RVector::writeToDatabase" << endl;
-  cout << "not implemented yet." << endl;
-  return 0;
+void RVector::getSEXPS(std::vector<SEXP>& ans) const {
+    ans.push_back(sexp_);
 }
 
-int RDataFrame::writeToDatabase(DatabaseConnection* conn, const char* tableName, const bool writeNames) {
-  R_len_t rows_to_write = length(VECTOR_ELT(sexp_,0));
-  int rows_written = 0;
-  bool query_success = true;
-  vector<TypeConverter*> typeConverters;
-  vector<string> colnames;
+void RVector::createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const {
+  if(writeRowNames) {
+    write_job.push_back(ColumnForWriting(getRownames(),0));
+  }
+  write_job.push_back(ColumnForWriting(sexp_, 0));
+}
 
-  if(writeNames) {
-    typeConverters.push_back(conn->getTypeConverter(getRownames()));
-    colnames.push_back("id");  // rails style -- shold there be an option for this arg?
+R_len_t RVector::nrow() const {
+  if(sexp_==R_NilValue) {
+    return 0;
   }
+  return length(sexp_);
+}
 
-  for(R_len_t i = 0; i < length(sexp_); i++) {
-    typeConverters.push_back(conn->getTypeConverter(VECTOR_ELT(sexp_,i)));
+R_len_t RVector::ncol() const {
+  if(sexp_==R_NilValue) {
+    return 0;
   }
-  if(hasColnames()) {
-    sexp2string(getColnames(),back_inserter(colnames));
-  } else {
-    for(R_len_t i = 0; i < length(sexp_); i++) {
-      stringstream fakename("colname");
-      fakename << i + 1;
-      colnames.push_back(fakename.str());
-    }
-  }
-
-  if(!conn->existsTable(tableName)) {
-    conn->createTable(tableName,colnames,typeConverters);
-  }
-  conn->transaction_begin();
-  do {
-    stringstream query;
-    query << "insert into " << tableName << " values (";
-    for(size_t col = 0; col < typeConverters.size(); col++) {
-      query << typeConverters[col]->toString(rows_written);
-      if(col < (typeConverters.size() - 1)) {
-	query << ",";
-      }
-    }
-    query << ")";
-    //cout << query.str() << endl;
-    QueryResults* res = conn->sendQuery(query.str().c_str());
-    query_success = res->valid();
-    rows_written += static_cast<int>(query_success);
-    delete res;
-    if(rows_written % 100000 == 0) {
-      cout << rows_written << endl;
-    }
-  } while(rows_written < rows_to_write && query_success);
-  conn->commit();
-
-  // free typeconverters
-  for(vector<TypeConverter*>::iterator iter = typeConverters.begin(); iter != typeConverters.end(); iter++) {
-    delete *iter;
-  }
-  return rows_written;
+  return 1;
 }
