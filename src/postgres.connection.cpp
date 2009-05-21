@@ -230,6 +230,15 @@ int PostgresConnection::write(const char * tableName, const vector<ColumnForWrit
     ++currentRow;
   } while(currentRow < nrows && PQresultStatus(res) == PGRES_COMMAND_OK);
 
+  delete[] paramTypes;
+  delete[] paramValues;
+  delete[] paramLengths;
+  delete[] paramFormats;
+
+  for(int i = 0; i < numCols; i++) {
+    delete pg_col_writers[i];
+  }
+
   if(PQresultStatus(res) != PGRES_COMMAND_OK) {
     cerr << "status:" << PQresStatus(PQresultStatus(res)) << endl;
     rollback();
