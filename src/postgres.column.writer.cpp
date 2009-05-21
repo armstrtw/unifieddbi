@@ -16,7 +16,9 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+#include <cstring>
 #include <netinet/in.h>
+#include <boost/date_time/gregorian/gregorian.hpp>
 
 #include "postgres.column.writer.hpp"
 #include "postgres.oid.hpp"
@@ -27,15 +29,16 @@
 using std::cout;
 using std::endl;
 
+using namespace boost::gregorian;
 using namespace postgres;
 
-PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid oid, const ColumnForWriting& wjob, char*& dest, int& paramLength) {  
+PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid oid, const ColumnForWriting& wjob, char*& dest, int& paramLength) {
   switch(static_cast<pg_oidT>(oid)) {
   case BOOLOID:
     return new bool2bool_writer(wjob, dest, paramLength);
   case BYTEAOID:
     throw MapToTypeNotImplemented("BYTEAOID");
-  case CHAROID:    
+  case CHAROID:
   case NAMEOID:
     return new char2char_writer(wjob, dest, paramLength);
   //case INT8OID:
@@ -85,7 +88,7 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
       throw MapToTypeNotImplemented("TEXTOID/VARCHAROID/BPCHAROID");
     }
     break;
-      
+
   // case OIDOID:
   // case TIDOID:
   // case XIDOID:
@@ -123,7 +126,7 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
       throw MapToTypeNotImplemented("FLOAT8OID");
     }
     break;
-    
+
   // case ABSTIMEOID:
   // case RELTIMEOID:
   // case TINTERVALOID:
@@ -137,8 +140,26 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
   // case FLOAT4ARRAYOID:
   // case ACLITEMOID:
   // case CSTRINGARRAYOID:
-  //case DATEOID:
-    //return new date_writer(wjob, dest, paramLength);
+  case DATEOID:
+    switch(getColumnType(wjob.sexp)) {
+    case boolT:
+      throw MapToTypeNotImplemented("DATEOID");
+    case intT:
+      throw MapToTypeNotImplemented("DATEOID");
+    case doubleT:
+      throw MapToTypeNotImplemented("DATEOID");
+    case charT:
+      throw MapToTypeNotImplemented("DATEOID");
+    case factorT:
+      throw MapToTypeNotImplemented("DATEOID");
+    case dateTimeT:
+      throw MapToTypeNotImplemented("DATEOID");
+    case dateT:
+      return new posixct2date_writer(wjob, dest, paramLength);
+    default:
+      throw MapToTypeNotImplemented("DATEOID");
+    }
+    break;
   // case TIMEOID:
   // case TIMESTAMPOID:
   //case TIMESTAMPTZOID:
@@ -198,7 +219,7 @@ void bool2bool_writer::setCharPtr(const R_len_t row) {
 // noop for bools
 void bool2bool_writer::setLength(const R_len_t row) {}
 
-int bool2bool_writer::getFormat() const { 
+int bool2bool_writer::getFormat() const {
   return 1;
 }
 
@@ -213,14 +234,14 @@ void char2char_writer::setCharPtr(const R_len_t row) {
 // noop for chars
 void char2char_writer::setLength(const R_len_t row) {}
 
-int char2char_writer::getFormat() const { 
+int char2char_writer::getFormat() const {
   return 0;
 }
 
 factor2char_writer::factor2char_writer(const ColumnForWriting& wjob, char*& dest, int& len) : PostgresColumnWriter(wjob, dest, len), levels_(getAttrib(wjob_.sexp,R_LevelsSymbol)) {
   len_ = NULL;
 }
- 
+
 void factor2char_writer::setCharPtr(const R_len_t row) {
   dest_ = const_cast<char*>(CHAR(STRING_ELT(levels_,INTEGER(wjob_.sexp)[row]-1)));
 }
@@ -228,7 +249,7 @@ void factor2char_writer::setCharPtr(const R_len_t row) {
 // noop for chars
 void factor2char_writer::setLength(const R_len_t row) {}
 
-int factor2char_writer::getFormat() const { 
+int factor2char_writer::getFormat() const {
   return 0;
 }
 
@@ -244,7 +265,7 @@ void double2float8_writer::setCharPtr(const R_len_t row) {
 // noop for float8
 void double2float8_writer::setLength(const R_len_t row) {}
 
-int double2float8_writer::getFormat() const { 
+int double2float8_writer::getFormat() const {
   return 1;
 }
 
@@ -260,6 +281,31 @@ void int2int4_writer::setCharPtr(const R_len_t row) {
 // noop for float8
 void int2int4_writer::setLength(const R_len_t row) {}
 
-int int2int4_writer::getFormat() const { 
+int int2int4_writer::getFormat() const {
+  return 1;
+}
+
+posixct2date_writer::posixct2date_writer(const ColumnForWriting& wjob, char*& dest, int& len) : PostgresColumnWriter(wjob, dest, len) {
+  len_ = 4;
+}
+
+void posixct2date_writer::setCharPtr(const R_len_t row) {
+  const date pg_origin = date(2000,Jan,1);
+  time_t x_time_t = static_cast<time_t>(REAL(wjob_.sexp)[row + wjob_.offset]);
+  struct tm x_struct_tm;
+  memset(&x_struct_tm,'\0',sizeof(struct tm));
+  x_struct_tm.tm_isdst = -1;
+  localtime_r(&x_time_t, &x_struct_tm);
+  date greg_date = date_from_tm(x_struct_tm);
+  date_duration pg_julian2000(greg_date - pg_origin);
+  int julian_for_pg = static_cast<int>(pg_julian2000.days());
+  hton_flipped_int = ntohl(*reinterpret_cast<uint32_t*>(&julian_for_pg));
+  dest_ = reinterpret_cast<char*>(&hton_flipped_int);
+}
+
+// noop for float8
+void posixct2date_writer::setLength(const R_len_t row) {}
+
+int posixct2date_writer::getFormat() const {
   return 1;
 }

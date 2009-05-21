@@ -81,4 +81,15 @@ public:
   int getFormat() const;
 };
 
+
+class posixct2date_writer : public PostgresColumnWriter {
+  //const double postgres_epoch_diff = 946684800;
+  uint32_t hton_flipped_int;
+public:
+  posixct2date_writer(const ColumnForWriting& wjob, char*& dest, int& len);
+  void setCharPtr(const R_len_t row);
+  void setLength(const R_len_t row);
+  int getFormat() const;
+};
+
 #endif // POSTGRES_COLUMN_WRITER_HPP
