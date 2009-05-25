@@ -25,7 +25,6 @@
 #include <cstddef>
 
 #include <Rinternals.h>
-#include <Rutilities.hpp>
 
 #include "database.connection.hpp"
 #include "database.errors.hpp"
@@ -140,5 +139,6 @@ string DatabaseConnection::getNativeType(RColumnType dbColType) {
   case factorT: return getFactorType();
   case dateTimeT: return getDateTimeType();
   case dateT: return getDateType();
+  default: throw unknownRColumnType(dbColType);
   }
 }
