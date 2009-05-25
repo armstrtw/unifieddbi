@@ -16,6 +16,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "database.errors.hpp"
+#include "conversion.utils.hpp"
 
 BadDatabaseConnection::BadDatabaseConnection(const char* conn_error)
   : std::logic_error(std::string("Database connection error: ") + std::string(conn_error)) {}
@@ -32,3 +33,5 @@ TypeNotSupported::TypeNotSupported(const char* RObject_Type)
 MapToTypeNotImplemented::MapToTypeNotImplemented(const char* dbType)
   : std::logic_error(std::string("Cannot convert R object to database type: ") + std::string(dbType)) {}
 
+unknownRColumnType::unknownRColumnType(RColumnType dbColType)
+  : std::logic_error(std::string("Unknown RColumnType ") + itos(dbColType)) {}

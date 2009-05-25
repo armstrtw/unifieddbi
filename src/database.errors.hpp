@@ -19,6 +19,7 @@
 #define DATABASE_ERRORS_HPP
 
 #include <stdexcept>
+#include "r.column.types.hpp"
 
   // all implementations should use these errors
   class BadDatabaseConnection : public std::logic_error {
@@ -40,5 +41,10 @@
   public:
     MapToTypeNotImplemented(const char* dbType);
   };
+
+class unknownRColumnType : public std::logic_error {
+ public:
+  unknownRColumnType(RColumnType dbColType);
+};
 
 #endif // DATABASE_ERRORS_HPP
