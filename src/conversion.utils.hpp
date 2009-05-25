@@ -18,6 +18,7 @@
 #ifndef CONVERSION_UTILS_HPP
 #define CONVERSION_UTILS_HPP
 
+#include <stdint.h>
 #include <string>
 
 std::string itos(const int i);
