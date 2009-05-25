@@ -18,11 +18,13 @@
 #ifndef R_COLUMN_TYPES_HPP
 #define R_COLUMN_TYPES_HPP
 
+#include <string>
 #include <Rinternals.h>
 
-enum RColumnType {boolT, intT, doubleT, charT, factorT, dateTimeT, dateT, notDefinedT};
+enum RColumnType {boolT, intT, doubleT, charT, factorT, dateTimeT, dateT};
 
 RColumnType getColumnType(const SEXPTYPE sptype);
 RColumnType getColumnType(SEXP value_sexp);
+std::string columnType2String(const RColumnType col);
 
 #endif // R_COLUMN_TYPES_HPP

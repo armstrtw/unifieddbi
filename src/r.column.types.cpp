@@ -83,3 +83,25 @@ RColumnType getColumnType(SEXP value_sexp) {
   // not a common class, so just use basic type to convert
   return getColumnType(TYPEOF(value_sexp));
 }
+
+
+std::string columnType2String(const RColumnType col) {
+  switch(col) {
+  case boolT:
+    return string("boolT");
+  case intT:
+    return string("intT");
+  case doubleT:
+    return string("doubleT");
+  case charT:
+    return string("charT");
+  case factorT:
+    return string("factorT");
+  case dateTimeT:
+    return string("dateTimeT");
+  case dateT:
+    return string("dateT");
+  defaut:
+    return string("not defined");
+  }
+}
