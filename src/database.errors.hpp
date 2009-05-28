@@ -39,7 +39,7 @@
 
   class MapToTypeNotImplemented : public std::logic_error {
   public:
-    MapToTypeNotImplemented(const char* dbType);
+    MapToTypeNotImplemented(const std::string& RType, const std::string& dbType);
   };
 
 class unknownRColumnType : public std::logic_error {
