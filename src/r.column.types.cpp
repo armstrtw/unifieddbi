@@ -101,7 +101,7 @@ std::string columnType2String(const RColumnType col) {
     return string("dateTimeT");
   case dateT:
     return string("dateT");
-  defaut:
+  default:
     return string("not defined");
   }
 }
