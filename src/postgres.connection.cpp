@@ -23,7 +23,6 @@
 #include <Rinternals.h>
 #include <cstdlib>
 
-#include <Rutilities.hpp>
 #include "postgres.connection.hpp"
 #include "postgres.column.writer.hpp"
 #include "utils.hpp"
