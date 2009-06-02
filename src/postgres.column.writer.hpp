@@ -104,8 +104,8 @@ class factor2char_writer : public PostgresColumnWriter {
 private:
   SEXP levels_;
 public:
-factor2char_writer(const ColumnForWriting& wjob, char*& dest, int& len)
-    : PostgresColumnWriter(wjob, dest, len) {
+  factor2char_writer(const ColumnForWriting& wjob, char*& dest, int& len)
+    : PostgresColumnWriter(wjob, dest, len), levels_(getAttrib(wjob_.sexp,R_LevelsSymbol)) {
     len_ = NULL;
   }
   void setCharPtr(const R_len_t row) {
