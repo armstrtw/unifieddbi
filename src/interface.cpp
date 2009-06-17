@@ -168,6 +168,8 @@ SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp) {
 SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP writeRowNames_sexp, SEXP overWrite_sexp, SEXP append_sexp) {
   cout << "ignoring append argument" << endl;
   SEXP ans;
+  int rows;
+
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
   if(!conn) {
     // throw bad_connection_object
@@ -186,11 +188,12 @@ SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP
     }
   }
 
-  //try {
-  int rows = conn->writeTable(tableName, value_sexp, writeRowNames);
-  //} catch (...) { // bad write?
-  //return R_NilValue;
-  //}
+  try {
+    rows = conn->writeTable(tableName, value_sexp, writeRowNames);
+  } catch (MapToTypeNotImplemented& e) {
+    cerr << e.what() << endl;
+    return R_NilValue;
+  }
   PROTECT(ans = allocVector(INTSXP,1));
   INTEGER(ans)[0] = rows;
   UNPROTECT(1);

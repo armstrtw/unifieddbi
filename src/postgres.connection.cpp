@@ -191,7 +191,6 @@ std::string genInsertQuery(const char* tableName, const vector<ColumnForWriting>
     }
   }
   query << ")";
-  cout << query.str() << endl;
   return query.str();
 }
 
