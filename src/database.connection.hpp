@@ -29,8 +29,6 @@
 #include "r.column.types.hpp"
 
 class DatabaseConnection {
-private:
-  void fixColnames(std::vector<std::string>& colnames);
 protected:
   virtual std::string getBooleanType() const = 0;
   virtual std::string getIntegerType() const = 0;

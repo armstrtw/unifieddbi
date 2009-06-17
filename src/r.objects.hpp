@@ -39,7 +39,7 @@ public:
   virtual SEXP getColnames() const = 0;
   virtual void getColnames(std::vector<std::string>& ans) const = 0;
   virtual void getSEXPS(std::vector<SEXP>& ans) const = 0;
-  virtual void createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const = 0;
+  virtual R_len_t getOffset(const R_len_t colNum) const = 0;
 };
 
 class RDataFrame : public Robject {
@@ -55,7 +55,7 @@ public:
   SEXP getColnames() const;
   void getColnames(std::vector<std::string>& ans) const;
   void getSEXPS(std::vector<SEXP>& ans) const;
-  void createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const;
+  R_len_t getOffset(const R_len_t colNum) const;
 };
 
 
@@ -72,7 +72,7 @@ public:
   SEXP getColnames() const;
   void getColnames(std::vector<std::string>& ans) const;
   void getSEXPS(std::vector<SEXP>& ans) const;
-  void createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const;
+  R_len_t getOffset(const R_len_t colNum) const;
 };
 
 class RVector : public Robject {
@@ -88,7 +88,7 @@ public:
   SEXP getColnames() const;
   void getColnames(std::vector<std::string>& ans) const;
   void getSEXPS(std::vector<SEXP>& ans) const;
-  void createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const;
+  R_len_t getOffset(const R_len_t colNum) const;
 };
 
 #endif // R_OBJECTS_HPP

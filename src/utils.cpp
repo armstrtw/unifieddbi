@@ -112,3 +112,10 @@ void cleanColnames(vector<string>& colnames, const string& badString, const stri
     cleanString(*iter, badString, replaceString);
   }
 }
+
+void fixColnames(vector<string>& colnames) {
+  cleanColnames(colnames, string("."),"_");
+  cleanColnames(colnames, string("("),"");
+  cleanColnames(colnames, string(")"),"");
+  cleanColnames(colnames, string(" "),"_");
+}

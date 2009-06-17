@@ -74,15 +74,6 @@ void RDataFrame::getSEXPS(std::vector<SEXP>& ans) const {
   }
 }
 
-void RDataFrame::createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const {
-  if(writeRowNames) {
-    write_job.push_back(ColumnForWriting(getRownames(),0));
-  }
-
-  for(R_len_t i = 0; i < ncol(); i++) {
-    write_job.push_back(ColumnForWriting(VECTOR_ELT(sexp_,i),0));
-  }
-}
 
 R_len_t RDataFrame::nrow() const {
   if(sexp_==R_NilValue) {
@@ -96,6 +87,10 @@ R_len_t RDataFrame::ncol() const {
     return 0;
   }
   return length(sexp_);
+}
+
+R_len_t RDataFrame::getOffset(const R_len_t colNum) const {
+  return 0;
 }
 
 bool RMatrix::hasRownames() const {
@@ -135,16 +130,6 @@ void RMatrix::getSEXPS(std::vector<SEXP>& ans) const {
   }
 }
 
-void RMatrix::createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const {
-  if(writeRowNames) {
-    write_job.push_back(ColumnForWriting(getRownames(),0));
-  }
-
-  for(R_len_t i = 0; i < ncol(); i++) {
-    write_job.push_back(ColumnForWriting(sexp_, i * nrow()));
-  }
-}
-
 R_len_t RMatrix::nrow() const {
   if(sexp_==R_NilValue) {
     return 0;
@@ -158,6 +143,10 @@ R_len_t RMatrix::ncol() const {
     return 0;
   }
   return ncols(sexp_);
+}
+
+R_len_t RMatrix::getOffset(const R_len_t colNum) const {
+  return colNum * nrow();
 }
 
 bool RVector::hasRownames() const {
@@ -177,18 +166,11 @@ SEXP RVector::getRownames() const {
 }
 
 void RVector::getColnames(std::vector<std::string>& ans) const {
-  return;
+  ans.push_back("r_vector");
 }
 
 void RVector::getSEXPS(std::vector<SEXP>& ans) const {
     ans.push_back(sexp_);
-}
-
-void RVector::createWriteJob(std::vector<ColumnForWriting>& write_job, const bool writeRowNames) const {
-  if(writeRowNames) {
-    write_job.push_back(ColumnForWriting(getRownames(),0));
-  }
-  write_job.push_back(ColumnForWriting(sexp_, 0));
 }
 
 R_len_t RVector::nrow() const {
@@ -203,4 +185,8 @@ R_len_t RVector::ncol() const {
     return 0;
   }
   return 1;
+}
+
+R_len_t RVector::getOffset(const R_len_t colNum) const {
+  return 0;
 }

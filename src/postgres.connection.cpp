@@ -172,9 +172,18 @@ void PostgresConnection::getOIDs(const char* tableName, vector<Oid>& oids) {
 
 // FIXME: look up colnames to make sure we have proper order
 // and only write the columns that we match
-std::string genInsertQuery(const char* tableName, const int ncols) {
+std::string genInsertQuery(const char* tableName, const vector<ColumnForWriting>& cols) {
+  int ncols = cols.size();
   stringstream query;
-  query << "INSERT INTO " << tableName << " VALUES (";
+  query << "INSERT INTO " << tableName;
+  query << " (";
+  for(int i = 0; i < ncols; i++) {
+    query << cols[i].colname;
+    if(i < ncols-1) {
+      query << ",";
+    }
+  }
+  query << ") VALUES (";
   for(int i = 0; i < ncols; i++) {
     query << "$" << i + 1;
     if( i < (ncols -1)) {
@@ -182,6 +191,7 @@ std::string genInsertQuery(const char* tableName, const int ncols) {
     }
   }
   query << ")";
+  cout << query.str() << endl;
   return query.str();
 }
 
@@ -193,7 +203,7 @@ int PostgresConnection::write(const char * tableName, const vector<ColumnForWrit
 
   getOIDs(tableName,oids);
   int numCols = cols.size();
-  std::string command(genInsertQuery(tableName, numCols));
+  std::string command(genInsertQuery(tableName, cols));
   Oid* paramTypes = new Oid[numCols]; for(int i = 0; i < numCols; i++) { paramTypes[i] = oids[i]; }
   char** paramValues = new char*[numCols];
   int* paramLengths = new int[numCols];

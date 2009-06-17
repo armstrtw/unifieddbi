@@ -33,6 +33,7 @@
 #include "utils.hpp"
 #include "r.objects.hpp"
 #include "r.column.types.hpp"
+#include "create.write.job.hpp"
 
 using std::vector;
 using std::string;
@@ -61,13 +62,6 @@ DatabaseConnection* DatabaseConnection::init(const char* dbType) {
   }
 }
 
-void DatabaseConnection::fixColnames(vector<string>& colnames) {
-  cleanColnames(colnames, string("."),"_");
-  cleanColnames(colnames, string("("),"");
-  cleanColnames(colnames, string(")"),"");
-  cleanColnames(colnames, string(" "),"_");
-}
-
 void DatabaseConnection::createTable(const char* tableName, SEXP value_sexp, const bool writeRowNames) {
 
   std::vector<string> colnames;
@@ -78,7 +72,7 @@ void DatabaseConnection::createTable(const char* tableName, SEXP value_sexp, con
   Robject* robj = Robject::factory(value_sexp);
 
   if(writeRowNames) {
-    colnames.push_back("id");
+    colnames.push_back("rownames");
     colTypes.push_back(charT);
   }
 
@@ -109,7 +103,7 @@ int DatabaseConnection::writeTable(const char* tableName, SEXP value_sexp, const
   }
   Robject* robj = Robject::factory(value_sexp);
   vector<ColumnForWriting> write_job;
-  robj->createWriteJob(write_job, writeRowNames);
+  createWriteJob(robj, write_job, writeRowNames);
   return write(tableName, write_job, robj->nrow());
 }
 

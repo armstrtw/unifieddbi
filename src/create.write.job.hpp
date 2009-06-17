@@ -15,25 +15,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef COLUMN_FOR_WRITING_HPP
-#define COLUMN_FOR_WRITING_HPP
+#ifndef CREATE_WRITE_JOB_HPP
+#define CREATE_WRITE_JOB_HPP
 
 #include <string>
-#include <Rinternals.h>
+#include "r.objects.hpp"
+#include "Rutilities.hpp"
 
-////////////////////////////////////////////////////////////////////////////
-//    encompasses a column to be written to the database                  //
-//    i.e. it holds the proper offset for matrix types in R               //
-//    in which different columns are represented as offsets from the same //
-//    base memory address                                                 //
-////////////////////////////////////////////////////////////////////////////
-class ColumnForWriting {
-public:
-  SEXP sexp;
-  R_len_t offset;
-  std::string colname;
-  ColumnForWriting(const SEXP sexp_, const R_len_t offset_, const std::string& colname_) : sexp(sexp_), offset(offset_), colname(colname_) {}
-};
+using std::vector;
 
+void createWriteJob(const Robject* x, std::vector<ColumnForWriting>& write_job, const bool writeRowNames);
 
-#endif // COLUMN_FOR_WRITING_HPP
+#endif // CREATE_WRITE_JOB_HPP

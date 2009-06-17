@@ -31,6 +31,7 @@ std::string posixDateTime2string(const double x);
 //std::string posixltDateTime2string(const int year, const int mon, const int day);
 void cleanString(std::string& str, const std::string& badString, const std::string& replaceString);
 void cleanColnames(std::vector<std::string>& colnames, const std::string& badString, const std::string& replaceString);
+void fixColnames(std::vector<std::string>& colnames);
 std::string AddQuote(const std::string& x);
 
 #endif // UTILS_HPP

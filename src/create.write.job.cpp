@@ -15,25 +15,29 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef COLUMN_FOR_WRITING_HPP
-#define COLUMN_FOR_WRITING_HPP
-
 #include <string>
-#include <Rinternals.h>
+#include "r.objects.hpp"
+#include "create.write.job.hpp"
+#include "utils.hpp"
 
-////////////////////////////////////////////////////////////////////////////
-//    encompasses a column to be written to the database                  //
-//    i.e. it holds the proper offset for matrix types in R               //
-//    in which different columns are represented as offsets from the same //
-//    base memory address                                                 //
-////////////////////////////////////////////////////////////////////////////
-class ColumnForWriting {
-public:
-  SEXP sexp;
-  R_len_t offset;
-  std::string colname;
-  ColumnForWriting(const SEXP sexp_, const R_len_t offset_, const std::string& colname_) : sexp(sexp_), offset(offset_), colname(colname_) {}
-};
+using std::vector;
+using std::string;
 
+// FIXME: add null check here or in robject factory
 
-#endif // COLUMN_FOR_WRITING_HPP
+void createWriteJob(const Robject* x, std::vector<ColumnForWriting>& write_job, const bool writeRowNames) {
+  vector<string> colnames;
+  vector<SEXP> sexps;
+
+  if(writeRowNames && x->hasRownames()) {
+    write_job.push_back(ColumnForWriting(x->getRownames(),0,"rownames"));
+  }
+
+  // FIXME: fail/throw if there are no colnames
+  x->getSEXPS(sexps);
+  x->getColnames(colnames);
+  fixColnames(colnames);
+  for(R_len_t i = 0; i < x->ncol(); i++) {
+    write_job.push_back(ColumnForWriting(sexps[i],x->getOffset(i),colnames[i]));
+  }
+}
