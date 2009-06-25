@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <cctype>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -96,6 +97,9 @@ void cleanString(string& str, const string& badString, const string& replaceStri
     str.replace( pos, badString.size(), replaceString );
     pos++;
   }
+
+  // and tolower the string too
+  transform(str.begin(), str.end(), str.begin(), tolower);
 }
 
 string AddQuote(const string& x) {
