@@ -20,12 +20,14 @@
 #include <vector>
 #include <stdexcept>
 #include <iostream>
+#include <algorithm>
 #include <Rinternals.h>
 #include <cstdlib>
 
 #include "postgres.connection.hpp"
 #include "postgres.column.writer.hpp"
 #include "utils.hpp"
+#include "database.errors.hpp"
 
 using std::cout;
 using std::cerr;
@@ -158,13 +160,14 @@ PostgresResults* PostgresConnection::sendQuery(const char* query) {
   return static_cast<PostgresResults*>(NULL);
 }
 
-void PostgresConnection::getOIDs(const char* tableName, vector<Oid>& oids) {
+void PostgresConnection::getOIDs(const char* tableName, vector<string>& relationNames, vector<Oid>& oids) {
   stringstream query;
-  query << "SELECT atttypid FROM pg_attribute WHERE attrelid = '" << tableName << "'::regclass and attnum > 0 and attisdropped = FALSE";
+  query << "SELECT attname, atttypid FROM pg_attribute WHERE attrelid = '" << tableName << "'::regclass and attnum > 0 and attisdropped = FALSE";
   PGresult* res = PQexec(conn_, query.str().c_str());
   if(PQresultStatus(res)==PGRES_TUPLES_OK && PQntuples(res)) {
     for(int i = 0; i < PQntuples(res); i++) {
-      oids.push_back(atoi(PQgetvalue(res, i, 0)));
+      relationNames.push_back(PQgetvalue(res, i, 0));
+      oids.push_back(atoi(PQgetvalue(res, i, 1)));
     }
   }
   PQclear(res);
@@ -172,7 +175,7 @@ void PostgresConnection::getOIDs(const char* tableName, vector<Oid>& oids) {
 
 // FIXME: look up colnames to make sure we have proper order
 // and only write the columns that we match
-std::string genInsertQuery(const char* tableName, const vector<ColumnForWriting>& cols) {
+string PostgresConnection::genInsertQuery(const char* tableName, const vector<ColumnForWriting>& cols) {
   int ncols = cols.size();
   stringstream query;
   query << "INSERT INTO " << tableName;
@@ -186,7 +189,7 @@ std::string genInsertQuery(const char* tableName, const vector<ColumnForWriting>
   query << ") VALUES (";
   for(int i = 0; i < ncols; i++) {
     query << "$" << i + 1;
-    if( i < (ncols -1)) {
+    if( i < ncols-1) {
       query << ",";
     }
   }
@@ -194,26 +197,63 @@ std::string genInsertQuery(const char* tableName, const vector<ColumnForWriting>
   return query.str();
 }
 
-int PostgresConnection::write(const char * tableName, const vector<ColumnForWriting>& cols, const int nrows) {
+// walk through cols and look up wich colname matches in the DB
+void PostgresConnection::find_column_oids(vector<Oid>& oids, const char* tableName, const vector<ColumnForWriting>& cols) {
+  size_t offset = 0;
+  vector<string> relationNames;
+  vector<Oid> table_oids;
+  vector<string>::iterator iter;
+
+  // look in database to find attributes of the table we want to write
+  getOIDs(tableName,relationNames,table_oids);
+
+  for(size_t i = 0; i < cols.size(); i++) {
+    iter = find(relationNames.begin(), relationNames.end(),cols[i].colname);
+    if(iter == relationNames.end()) {
+      throw unknownRelationName(cols[i].colname);
+    } else {
+      offset = distance(relationNames.begin(),iter);
+      cout << "offset: " << offset << endl;
+      cout << "oid: " << table_oids[offset] << endl;
+      oids.push_back(table_oids[offset]);
+    }
+  }
+}
+
+int PostgresConnection::write(const char* tableName, const vector<ColumnForWriting>& cols, const int nrows) {
   int currentRow = 0;
   PGresult* res = NULL;
-  vector<Oid> oids;
   vector<PostgresColumnWriter*> pg_col_writers;
+  vector<size_t> validColumns;
+  vector<string> validColnames;
+  vector<Oid> oids;
 
-  getOIDs(tableName,oids);
+  try {
+    find_column_oids(oids, tableName, cols);
+  } catch(unknownRelationName& e) {
+    cerr << e.what() << endl;
+    return 0;
+  }
+
+  // allocate everything based on the size of validColumns
   int numCols = cols.size();
-  std::string command(genInsertQuery(tableName, cols));
-  Oid* paramTypes = new Oid[numCols]; for(int i = 0; i < numCols; i++) { paramTypes[i] = oids[i]; }
+  Oid* paramTypes = new Oid[numCols];
   char** paramValues = new char*[numCols];
   int* paramLengths = new int[numCols];
   int* paramFormats = new int[numCols];
   int resultFormat = 1;
 
-  for(int i = 0; i < numCols; i++) {
-    PostgresColumnWriter* pgw = PostgresColumnWriter::createPostgresColumnWriter(paramTypes[i],cols[i],paramValues[i],paramLengths[i]);
-    pg_col_writers.push_back(pgw);
+  std::string command(genInsertQuery(tableName, cols));
+
+  cout << "oid size: " << oids.size() << endl;
+
+  for(size_t i = 0; i < numCols; i++) {
+    paramTypes[i] = oids[i];
+    // a colwrite object is initialized with the memory locations it will be writing to
+    pg_col_writers.push_back(PostgresColumnWriter::createPostgresColumnWriter(paramTypes[i],cols[i],paramValues[i],paramLengths[i]));
   }
 
+  // init paramFormats
   for(int i = 0; i < numCols; i++) {
     paramFormats[i] = pg_col_writers[i]->getFormat();
   }

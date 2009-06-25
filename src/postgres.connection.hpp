@@ -35,7 +35,9 @@ namespace postgres {
     void verifyConnection();
     bool connectionValid();
     std::string getNativeType(SEXPTYPE basic_type);
-    void getOIDs(const char* tableName,std::vector<Oid>& oids);
+    void getOIDs(const char* tableName, std::vector<std::string>& relationNames, std::vector<Oid>& oids);
+    void find_column_oids(std::vector<Oid>& oids, const char* tableName, const std::vector<ColumnForWriting>& cols);
+    std::string genInsertQuery(const char* tableName, const std::vector<ColumnForWriting>& cols);
   protected:
     std::string getBooleanType() const { return std::string("boolean"); }
     std::string getIntegerType() const { return std::string("integer"); }

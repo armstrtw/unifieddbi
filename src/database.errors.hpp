@@ -18,33 +18,39 @@
 #ifndef DATABASE_ERRORS_HPP
 #define DATABASE_ERRORS_HPP
 
+#include <string>
 #include <stdexcept>
 #include "r.column.types.hpp"
 
-  // all implementations should use these errors
-  class BadDatabaseConnection : public std::logic_error {
-  public:
-    BadDatabaseConnection(const char* conn_error);
-  };
+// all implementations should use these errors
+class BadDatabaseConnection : public std::logic_error {
+public:
+  BadDatabaseConnection(const char* conn_error);
+};
 
-  class DriverNotSupported : public std::logic_error {
-  public:
-    DriverNotSupported(const char* dbType);
-  };
+class DriverNotSupported : public std::logic_error {
+public:
+  DriverNotSupported(const char* dbType);
+};
 
-  class TypeNotSupported : public std::logic_error {
-  public:
-    TypeNotSupported(const char* RObject_Type);
-  };
+class TypeNotSupported : public std::logic_error {
+public:
+  TypeNotSupported(const char* RObject_Type);
+};
 
-  class MapToTypeNotImplemented : public std::logic_error {
-  public:
-    MapToTypeNotImplemented(const std::string& RType, const std::string& dbType);
-  };
+class MapToTypeNotImplemented : public std::logic_error {
+public:
+  MapToTypeNotImplemented(const std::string& RType, const std::string& dbType);
+};
 
 class unknownRColumnType : public std::logic_error {
- public:
+public:
   unknownRColumnType(RColumnType dbColType);
+};
+
+class unknownRelationName : public std::logic_error {
+public:
+  unknownRelationName(const std::string& relationName);
 };
 
 #endif // DATABASE_ERRORS_HPP

@@ -32,8 +32,11 @@ TypeNotSupported::TypeNotSupported(const char* RObject_Type)
 
 // FIXME: add another arg which is R object type, so we can see the exact mapping routine that
 // needs to be built
-MapToTypeNotImplemented::MapToTypeNotImplemented(const std::string& RType, const std::string& dbType)
+MapToTypeNotImplemented::MapToTypeNotImplemented(const string& RType, const string& dbType)
   : std::logic_error(string("Cannot create map to type: ") + string(RType) + " " + string(dbType)) {}
 
 unknownRColumnType::unknownRColumnType(RColumnType dbColType)
   : std::logic_error(string("Unknown RColumnType ") + itos(dbColType)) {}
+
+unknownRelationName::unknownRelationName(const string& relationName)
+  : std::logic_error(string("Unknown relation name: ") + relationName) {}
