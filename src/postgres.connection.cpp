@@ -221,8 +221,10 @@ void PostgresConnection::find_column_oids(vector<Oid>& oids, const char* tableNa
 }
 
 int PostgresConnection::write(const char* tableName, const vector<ColumnForWriting>& cols, const int nrows) {
+  const char* prepared_stmt_name = "myinsert";
   int currentRow = 0;
   PGresult* res = NULL;
+  PGresult* deallocate_res = NULL;
   vector<PostgresColumnWriter*> pg_col_writers;
   vector<size_t> validColumns;
   vector<string> validColnames;
@@ -247,7 +249,7 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
 
   cout << "oid size: " << oids.size() << endl;
 
-  for(size_t i = 0; i < numCols; i++) {
+  for(int i = 0; i < numCols; i++) {
     paramTypes[i] = oids[i];
     // a colwrite object is initialized with the memory locations it will be writing to
     pg_col_writers.push_back(PostgresColumnWriter::createPostgresColumnWriter(paramTypes[i],cols[i],paramValues[i],paramLengths[i]));
@@ -258,6 +260,18 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
     paramFormats[i] = pg_col_writers[i]->getFormat();
   }
 
+  res = PQprepare(conn_,
+		  prepared_stmt_name,
+		  command.c_str(),
+		  numCols,
+		  paramTypes);
+  if(PQresultStatus(res) != PGRES_COMMAND_OK) {
+    PQclear(res);
+    return 0;
+  }
+  PQclear(res);
+  res = NULL;
+
   transaction_begin();
   do {
     PQclear(res);
@@ -267,14 +281,13 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
     }
 
     // insert
-    res = PQexecParams(conn_,
-                       command.c_str(),
-                       numCols,
-                       paramTypes,
-                       paramValues,
-                       paramLengths,
-                       paramFormats,
-                       resultFormat);
+    res = PQexecPrepared(conn_,
+			 prepared_stmt_name,
+			 numCols,
+			 paramValues,
+			 paramLengths,
+			 paramFormats,
+			 resultFormat);
     ++currentRow;
   } while(currentRow < nrows && PQresultStatus(res) == PGRES_COMMAND_OK);
 
@@ -286,9 +299,15 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
   for(int i = 0; i < numCols; i++) {
     delete pg_col_writers[i];
   }
+  deallocate_res = PQexec(conn_,(string("DEALLOCATE ") + string(prepared_stmt_name)).c_str());
+  if(PQresultStatus(deallocate_res) != PGRES_COMMAND_OK) {
+    cerr << "problem w/ DEALLOCATE on prepared statement." << endl;
+  }
+  PQclear(deallocate_res);
 
   if(PQresultStatus(res) != PGRES_COMMAND_OK) {
     cerr << "status:" << PQresStatus(PQresultStatus(res)) << endl;
+    PQclear(res);
     rollback();
     // throw...
     return 0;
