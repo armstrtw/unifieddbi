@@ -59,6 +59,8 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
     }
   } else {
     switch(static_cast<pg_oidT>(PQftype(res_,i))) {
+    case INT8OID:
+      return new INT8OID_binary(res_,i);
     case INT4OID:
       return new INT4OID_binary(res_,i);
     case DATEOID:

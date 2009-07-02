@@ -116,6 +116,14 @@ namespace postgres {
     void setValue(SEXP x, const R_len_t row) const;
   };
 
+  class INT8OID_binary : public PostgresResultColumn {
+    INT8OID_binary(const PGresult *res, const int position);
+    friend class PostgresColumnFactory;
+  public:
+    SEXP allocateSEXP(const R_len_t nrows) const;
+    void setValue(SEXP x, const R_len_t row) const;
+  };
+
   class DATEOID_binary : public PostgresResultColumn {
     DATEOID_binary(const PGresult *res, const int position);
     friend class PostgresColumnFactory;

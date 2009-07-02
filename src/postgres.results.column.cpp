@@ -208,6 +208,24 @@ void INT4OID_binary::setValue(SEXP x, const R_len_t row) const {
   }
 }
 
+INT8OID_binary::INT8OID_binary(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP INT8OID_binary::allocateSEXP(const R_len_t nrows) const {
+  // use double, b/c 8 byte int can overflow R's R_int_t (32bit int)
+  return allocVector(REALSXP, nrows);
+}
+
+void INT8OID_binary::setValue(SEXP x, const R_len_t row) const {
+  if(isNullValue(row)) {
+    REAL(x)[row] = NA_REAL;
+  } else {
+    const char *from_pg = getValue(row);
+    const uint64_t swap = ntohll(*reinterpret_cast<const uint64_t*>(from_pg));
+    REAL(x)[row] = static_cast<double>(*reinterpret_cast<const long*>(&swap));
+  }
+}
+
 DATEOID_binary::DATEOID_binary(const PGresult *res, const int position):
   PostgresResultColumn(res,position) {}
 
