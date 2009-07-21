@@ -5,11 +5,13 @@ export(
        dbConnect,
        dbSendQuery,
        fetch,
+       dbFetchQuery,
        dbClearResult,
        dbDisconnect,
        dbWriteTable,
        dbExistsTable,
-       dbListTables
+       dbListTables,
+       dbCreateIndex
        ##dbCommit,
        ##dbRollback
        )

@@ -34,6 +34,13 @@ fetch <- function(dbi.query.results, nrows= -1L) {
     .Call("dbfetch", dbi.query.results, as.integer(nrows), PACKAGE="unifiedDBI")
 }
 
+dbFetchQuery <- function(dbi.conn,qry) {
+    res <- dbSendQuery(dbi.conn,qry)
+    ans <- fetch(res)
+    dbClearResult(res)
+    ans
+}
+
 dbClearResult <- function(dbi.query.results) {
     .Call("dbClearResult", dbi.query.results, PACKAGE="unifiedDBI")
 }
@@ -52,4 +59,12 @@ dbExistsTable <- function(dbi.conn, tableName) {
 
 dbListTables <- function(dbi.conn) {
     .Call("dbListTables", dbi.conn, PACKAGE="unifiedDBI")
+}
+
+## create an index on database "db.name" using the columns "cols"
+dbCreateIndex <- function(conn,db.name,cols) {
+    idx.name <- paste(db.name,paste(cols,collapse="_"),"idx",sep="_")
+    idx.definition <- paste(db.name,"(",paste(cols,collapse=","),")",sep="")
+    idx.command <- paste("CREATE INDEX",idx.name,"on",idx.definition)
+    dbSendQuery(dev.conn,idx.command)
 }
