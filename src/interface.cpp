@@ -52,6 +52,7 @@ SEXP dbClearResult(SEXP dbi_query_results_sexp) {
     // call c++ destructor
     delete query_results;
     R_ClearExternalPtr(dbi_query_results_sexp);
+    dbi_query_results_sexp = R_NilValue;
     LOGICAL(ans)[0] = static_cast<int>(true);
   } else {
     LOGICAL(ans)[0] = static_cast<int>(false);
@@ -69,6 +70,7 @@ SEXP dbDisconnect(SEXP dbi_conn_sexp) {
     // call c++ destructor
     delete conn;
     R_ClearExternalPtr(dbi_conn_sexp);
+    dbi_conn_sexp = R_NilValue;
     LOGICAL(ans)[0] = static_cast<int>(true);
   }
   LOGICAL(ans)[0] = static_cast<int>(false);
