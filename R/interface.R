@@ -63,7 +63,7 @@ dbListTables <- function(dbi.conn) {
 
 ## create an index on database "db.name" using the columns "cols"
 dbCreateIndex <- function(conn,db.name,cols) {
-    idx.name <- paste(db.name,paste(cols,collapse="_"),"idx",sep="_")
+    idx.name <- gsub("\\.","_",paste(db.name,paste(cols,collapse="_"),"idx",sep="_"))
     idx.definition <- paste(db.name,"(",paste(cols,collapse=","),")",sep="")
     idx.command <- paste("CREATE INDEX",idx.name,"on",idx.definition)
     dbSendQuery(dev.conn,idx.command)
