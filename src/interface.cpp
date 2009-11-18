@@ -178,7 +178,10 @@ SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP
     cerr << "bad database connection." << endl;
     return ScalarInteger(0);
   }
-
+  if(TYPEOF(tableName_sexp) != CHARSXP) {
+    cerr << "ERROR: tableName is not a string." << endl;
+    return ScalarInteger(0);
+  }
   const char* tableName = CHAR(STRING_ELT(tableName_sexp,0));
   const bool writeRowNames = static_cast<bool>(LOGICAL(writeRowNames_sexp)[0]);
   const bool overWrite = static_cast<bool>(LOGICAL(overWrite_sexp)[0]);
