@@ -291,6 +291,14 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
     ++currentRow;
   } while(currentRow < nrows && PQresultStatus(res) == PGRES_COMMAND_OK);
 
+  if(PQresultStatus(res) == PGRES_COMMAND_OK) {
+    commit();
+  } else {
+    cerr << "status :" << PQresStatus(PQresultStatus(res)) << endl;
+    cerr << "error :" << PQresultErrorMessage(res) << endl;
+    rollback();
+  }
+
   delete[] paramTypes;
   delete[] paramValues;
   delete[] paramLengths;
@@ -308,10 +316,8 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
   if(PQresultStatus(res) != PGRES_COMMAND_OK) {
     cerr << "status:" << PQresStatus(PQresultStatus(res)) << endl;
     PQclear(res);
-    rollback();
     // throw...
     return 0;
   }
-  commit();
   return currentRow;
 }
