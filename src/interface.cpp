@@ -178,7 +178,7 @@ SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP
     cerr << "bad database connection." << endl;
     return ScalarInteger(0);
   }
-  if(TYPEOF(tableName_sexp) != CHARSXP) {
+  if(TYPEOF(tableName_sexp) != STRSXP) {
     cerr << "ERROR: tableName is not a string." << endl;
     return ScalarInteger(0);
   }
