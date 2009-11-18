@@ -17,6 +17,7 @@
 
 #ifndef POSTGRES_COLUMN_WRITER_HPP
 #define POSTGRES_COLUMN_WRITER_HPP
+#include <iostream>
 
 #include <netinet/in.h>
 #include <cstring>
@@ -50,7 +51,12 @@ public:
   bool2bool_writer(const ColumnForWriting& wjob, char*& dest, int& len)
     :PostgresColumnWriter(wjob, dest, len) { len_ = sizeof(int); }
   void setCharPtr(const R_len_t row)  {
-    dest_ = reinterpret_cast<char*>(&LOGICAL(wjob_.sexp)[row + wjob_.offset]);
+    int bool_for_writing = LOGICAL(wjob_.sexp)[row + wjob_.offset];
+    if(bool_for_writing == NA_LOGICAL) {
+      dest_ = NULL;
+    } else {
+      dest_ = reinterpret_cast<char*>(&bool_for_writing);
+    }
   }
   void setLength(const R_len_t row) {}
   int getFormat() const { return 1; }
@@ -141,8 +147,13 @@ public:
   }
 
   void setCharPtr(const R_len_t row) {
-    hton_flipped_int = ntohl(*reinterpret_cast<uint32_t*>(&INTEGER(wjob_.sexp)[row + wjob_.offset]));
-    dest_ = reinterpret_cast<char*>(&hton_flipped_int);
+    int int_for_writing = INTEGER(wjob_.sexp)[row + wjob_.offset];
+    if(int_for_writing == NA_INTEGER) {
+      dest_ = NULL;
+    } else {
+      hton_flipped_int = ntohl(*reinterpret_cast<uint32_t*>(&int_for_writing));
+      dest_ = reinterpret_cast<char*>(&hton_flipped_int);
+    }
   }
 
   void setLength(const R_len_t row) {}
