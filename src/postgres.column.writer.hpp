@@ -47,15 +47,18 @@ public:
 };
 
 class bool2bool_writer : public PostgresColumnWriter {
+private:
+  bool bool_val;
 public:
   bool2bool_writer(const ColumnForWriting& wjob, char*& dest, int& len)
-    :PostgresColumnWriter(wjob, dest, len) { len_ = sizeof(int); }
+    :PostgresColumnWriter(wjob, dest, len) { len_ = sizeof(bool); }
   void setCharPtr(const R_len_t row)  {
     int bool_for_writing = LOGICAL(wjob_.sexp)[row + wjob_.offset];
     if(bool_for_writing == NA_LOGICAL) {
       dest_ = NULL;
     } else {
-      dest_ = reinterpret_cast<char*>(&bool_for_writing);
+      bool_val = static_cast<bool>(bool_for_writing);
+      dest_ = reinterpret_cast<char*>(&bool_val);
     }
   }
   void setLength(const R_len_t row) {}
@@ -63,11 +66,19 @@ public:
 };
 
 class int2bool_writer : public PostgresColumnWriter {
+private:
+  bool bool_val;
 public:
   int2bool_writer(const ColumnForWriting& wjob, char*& dest, int& len)
-    :PostgresColumnWriter(wjob, dest, len) { len_ = sizeof(int); }
+    :PostgresColumnWriter(wjob, dest, len) { len_ = sizeof(bool); }
   void setCharPtr(const R_len_t row)  {
-    dest_ = reinterpret_cast<char*>(&INTEGER(wjob_.sexp)[row + wjob_.offset]);
+    int bool_for_writing = INTEGER(wjob_.sexp)[row + wjob_.offset];
+    if(bool_for_writing == NA_INTEGER) {
+      dest_ = NULL;
+    } else {
+      bool_val = static_cast<bool>(bool_for_writing);
+      dest_ = reinterpret_cast<char*>(&bool_val);
+    }
   }
   void setLength(const R_len_t row) {}
   int getFormat() const { return 1; }
@@ -170,9 +181,15 @@ public:
   }
 
   void setCharPtr(const R_len_t row) {
-    hton_flipped_int = ntohl(*reinterpret_cast<uint32_t*>(&LOGICAL(wjob_.sexp)[row + wjob_.offset]));
-    dest_ = reinterpret_cast<char*>(&hton_flipped_int);
+    int bool_for_writing = LOGICAL(wjob_.sexp)[row + wjob_.offset];
+    if(bool_for_writing == NA_LOGICAL) {
+      dest_ = NULL;
+    } else {
+      hton_flipped_int = ntohl(*reinterpret_cast<uint32_t*>(&bool_for_writing));
+      dest_ = reinterpret_cast<char*>(&hton_flipped_int);
+    }
   }
+
 
   void setLength(const R_len_t row) {}
   int getFormat() const {
