@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include <Rutilities.hpp>
 
@@ -66,13 +67,14 @@ RColumnType getColumnType(SEXP value_sexp) {
   }
 
   string most_specialized_class = *object_class.rbegin();
+  string least_specialized_class = *object_class.begin();
 
   if(most_specialized_class=="integer") { return intT; }
   if(most_specialized_class=="numeric") { return doubleT; }
   if(most_specialized_class=="factor") { return factorT; }
   if(most_specialized_class=="character") { return charT; }
   if(most_specialized_class=="logical") { return boolT; }
-  if(most_specialized_class=="POSIXct" || most_specialized_class=="POSIXlt") {
+  if(most_specialized_class=="POSIXct" || least_specialized_class=="POSIXct") {
     if(posixHasTimes(value_sexp)) {
       return dateTimeT;
     } else {
