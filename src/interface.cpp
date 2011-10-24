@@ -15,15 +15,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#include <iostream>
 #include "interface.hpp"
 #include "database.errors.hpp"
 #include "postgres.connection.hpp"
 #include "query.results.hpp"
-
-using std::cout;
-using std::cerr;
-using std::endl;
 
 static void connFinalizer(SEXP dbi_conn_sexp) {
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
@@ -44,18 +39,19 @@ static void queryResultsFinalizer(SEXP query_results_sexp) {
 }
 
 SEXP dbClearResult(SEXP dbi_query_results_sexp) {
-  SEXP ans;
-  PROTECT(ans = allocVector(LGLSXP,1));
+  SEXP ans; PROTECT(ans = allocVector(LGLSXP,1)); LOGICAL(ans)[0] = static_cast<int>(false);
+
+  if(TYPEOF(dbi_query_results_sexp) != EXTPTRSXP || dbi_query_results_sexp == R_NilValue) {
+    UNPROTECT(1);
+    return ans;
+  }
   QueryResults* query_results = reinterpret_cast<QueryResults*>(R_ExternalPtrAddr(dbi_query_results_sexp));
 
   if(query_results) {
     // call c++ destructor
     delete query_results;
     R_ClearExternalPtr(dbi_query_results_sexp);
-    dbi_query_results_sexp = R_NilValue;
     LOGICAL(ans)[0] = static_cast<int>(true);
-  } else {
-    LOGICAL(ans)[0] = static_cast<int>(false);
   }
 
   UNPROTECT(1);
@@ -63,17 +59,22 @@ SEXP dbClearResult(SEXP dbi_query_results_sexp) {
 }
 
 SEXP dbDisconnect(SEXP dbi_conn_sexp) {
-  SEXP ans;
-  PROTECT(ans = allocVector(LGLSXP,1));
+  SEXP ans; PROTECT(ans = allocVector(LGLSXP,1)); LOGICAL(ans)[0] = static_cast<int>(false);
+
+  if(TYPEOF(dbi_conn_sexp) != EXTPTRSXP || dbi_conn_sexp == R_NilValue) {
+    UNPROTECT(1);
+    return ans;
+  }
+
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
   if(conn) {
     // call c++ destructor
     delete conn;
     R_ClearExternalPtr(dbi_conn_sexp);
-    dbi_conn_sexp = R_NilValue;
     LOGICAL(ans)[0] = static_cast<int>(true);
+  } else {
+    LOGICAL(ans)[0] = static_cast<int>(false);
   }
-  LOGICAL(ans)[0] = static_cast<int>(false);
   UNPROTECT(1);
   return ans;
 }
@@ -106,7 +107,7 @@ SEXP dbConnect(SEXP dbType_sexp,
   try {
     conn = DatabaseConnection::init(dbType);
   } catch (DriverNotSupported& e) {
-    cerr << e.what() << endl;
+    REprintf("%s\n",e.what());
     return R_NilValue;
   }
 
@@ -119,7 +120,7 @@ SEXP dbConnect(SEXP dbType_sexp,
       conn->connect(user,pass,host,port,tty,dbName,options);
     }
   } catch(BadDatabaseConnection& e) {
-    cerr << e.what() << endl;
+    REprintf("%s\n",e.what());
     return R_NilValue;
   }
 
@@ -130,6 +131,10 @@ SEXP dbConnect(SEXP dbType_sexp,
 }
 
 SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp) {
+  if(TYPEOF(dbi_conn_sexp) != EXTPTRSXP || dbi_conn_sexp == R_NilValue) {
+    return R_NilValue;
+  }
+
   SEXP dbi_query_results_sexp;
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
   if(!conn) {
@@ -147,17 +152,17 @@ SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp) {
 }
 
 SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp) {
-  if(!R_ExternalPtrAddr(dbi_query_results_sexp)) {
+  if(TYPEOF(dbi_query_results_sexp) != EXTPTRSXP || dbi_query_results_sexp == R_NilValue) {
     return R_NilValue;
   }
 
   const int nrows = INTEGER(nrows_sexp)[0];
   QueryResults* query_results = reinterpret_cast<QueryResults*>(R_ExternalPtrAddr(dbi_query_results_sexp));
 
-  // FIXME: try/catch instead?
   if(query_results) {
     return query_results->fetch(nrows);
   } else {
+    REprintf("invalide dbi_query_results object.\n");
     return R_NilValue;
   }
 }
@@ -168,18 +173,21 @@ SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp) {
 // append should be automatic if the table exists, and should fail if the row formats don't match up
 // having both overwrite and append just complicates the logic of this function
 SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP writeRowNames_sexp, SEXP overWrite_sexp, SEXP append_sexp) {
-  cout << "ignoring append argument" << endl;
   SEXP ans;
   int rows;
+
+ if(TYPEOF(dbi_conn_sexp) != EXTPTRSXP || dbi_conn_sexp == R_NilValue) {
+    return R_NilValue;
+  }
 
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
   if(!conn) {
     // throw bad_connection_object
-    cerr << "bad database connection." << endl;
+    REprintf("bad database connection.\n");
     return ScalarInteger(0);
   }
   if(TYPEOF(tableName_sexp) != STRSXP) {
-    cerr << "ERROR: tableName is not a string." << endl;
+    REprintf("ERROR: tableName is not a string.\n");
     return ScalarInteger(0);
   }
   const char* tableName = CHAR(STRING_ELT(tableName_sexp,0));
@@ -188,7 +196,7 @@ SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP
 
   if(conn->existsTable(tableName) && overWrite) {
     if(!conn->removeTable(tableName)) {
-      cerr << "could not remove existing table (aborting)." << endl;
+      REprintf("could not remove existing table (aborting).\n");
       return ScalarInteger(0);
     }
   }
@@ -196,7 +204,7 @@ SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP
   try {
     rows = conn->writeTable(tableName, value_sexp, writeRowNames);
   } catch (MapToTypeNotImplemented& e) {
-    cerr << e.what() << endl;
+    REprintf("%s\n",e.what());
     return R_NilValue;
   }
   PROTECT(ans = allocVector(INTSXP,1));
@@ -207,10 +215,15 @@ SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP
 
 SEXP dbExistsTable(SEXP dbi_conn_sexp, SEXP tableName_sexp) {
   SEXP ans;
+
+ if(TYPEOF(dbi_conn_sexp) != EXTPTRSXP || dbi_conn_sexp == R_NilValue) {
+    return R_NilValue;
+  }
+
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
   if(!conn) {
     // throw bad_connection_object
-    cerr << "bad database connection." << endl;
+    REprintf("bad database connection.\n");
     return R_NilValue;
   }
 
@@ -222,10 +235,15 @@ SEXP dbExistsTable(SEXP dbi_conn_sexp, SEXP tableName_sexp) {
 }
 
 SEXP dbListTables(SEXP dbi_conn_sexp) {
+
+ if(TYPEOF(dbi_conn_sexp) != EXTPTRSXP || dbi_conn_sexp == R_NilValue) {
+    return R_NilValue;
+  }
+
   DatabaseConnection* conn = reinterpret_cast<DatabaseConnection*>(R_ExternalPtrAddr(dbi_conn_sexp));
   if(!conn) {
     // throw bad_connection_object
-    cerr << "bad database connection." << endl;
+    REprintf("bad database connection.\n");
     return R_NilValue;
   }
 

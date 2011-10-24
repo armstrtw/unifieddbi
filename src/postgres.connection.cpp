@@ -15,11 +15,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <stdexcept>
-#include <iostream>
 #include <algorithm>
 #include <Rinternals.h>
 #include <cstdlib>
@@ -29,7 +29,6 @@
 #include "utils.hpp"
 #include "database.errors.hpp"
 
-using std::cout;
 using std::cerr;
 using std::endl;
 using std::vector;
@@ -38,12 +37,10 @@ using std::stringstream;
 using namespace postgres;
 
 PostgresConnection::~PostgresConnection() {
-  cout << "PostgresConnection::~PostgresConnection()" << endl;
   disConnect();
 }
 
 PostgresConnection::PostgresConnection(): conn_(static_cast<PGconn*>(NULL)) {
-  cout << "PostgresConnection::PostgresConnection()" << endl;
 }
 
 void PostgresConnection::connect(const char* connectionString) {
@@ -213,8 +210,6 @@ void PostgresConnection::find_column_oids(vector<Oid>& oids, const char* tableNa
       throw unknownRelationName(cols[i].colname);
     } else {
       offset = distance(relationNames.begin(),iter);
-      cout << "offset: " << offset << endl;
-      cout << "oid: " << table_oids[offset] << endl;
       oids.push_back(table_oids[offset]);
     }
   }
@@ -246,8 +241,6 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
   int resultFormat = 1;
 
   std::string command(genInsertQuery(tableName, cols));
-
-  cout << "oid size: " << oids.size() << endl;
 
   for(int i = 0; i < numCols; i++) {
     paramTypes[i] = oids[i];

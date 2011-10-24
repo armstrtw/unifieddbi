@@ -92,7 +92,7 @@ void DatabaseConnection::createTable(const char* tableName, SEXP value_sexp, con
   }
   query << ")" << endl;
   // For debugging
-  cout << query.str().c_str() << endl;
+  //cout << query.str().c_str() << endl;
   QueryResults* res = sendQuery(query.str().c_str());
   res->printStatus();
 }
