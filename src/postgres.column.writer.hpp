@@ -111,7 +111,12 @@ public:
     len_ = NULL;
   }
   void setCharPtr(const R_len_t row) {
-    dest_ = const_cast<char*>(CHAR(STRING_ELT(wjob_.sexp, row + wjob_.offset)));
+    SEXP r_char_sexp = STRING_ELT(wjob_.sexp, row + wjob_.offset);
+    if(r_char_sexp == R_NaString) {
+      dest_ = NULL;
+    } else {
+      dest_ = const_cast<char*>(CHAR(r_char_sexp));
+    }
   }
   void setLength(const R_len_t row) {}
   int getFormat() const { return 0; }
@@ -126,7 +131,12 @@ public:
     len_ = NULL;
   }
   void setCharPtr(const R_len_t row) {
-    dest_ = const_cast<char*>(CHAR(STRING_ELT(levels_,INTEGER(wjob_.sexp)[row]-1)));
+    int position = INTEGER(wjob_.sexp)[row];
+    if(position == NA_INTEGER) {
+      dest_ = NULL;
+    } else {
+      dest_ = const_cast<char*>(CHAR(STRING_ELT(levels_,position-1)));
+    }
   }
   void setLength(const R_len_t row) {}
   int getFormat() const { return 0; }
