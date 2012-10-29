@@ -191,6 +191,23 @@ void BOOLOID_char::setValue(SEXP x, const R_len_t row) const {
   }
 }
 
+INT2OID_binary::INT2OID_binary(const PGresult *res, const int position):
+  PostgresResultColumn(res,position) {}
+
+SEXP INT2OID_binary::allocateSEXP(const R_len_t nrows) const {
+  return allocVector(INTSXP, nrows);
+}
+
+void INT2OID_binary::setValue(SEXP x, const R_len_t row) const {
+  if(isNullValue(row)) {
+    INTEGER(x)[row] = NA_INTEGER;
+  } else {
+    const char *from_pg = getValue(row);
+    const uint16_t swap = ntohs(*reinterpret_cast<const uint16_t*>(from_pg));
+    INTEGER(x)[row] = static_cast<int>(swap);
+  }
+}
+
 INT4OID_binary::INT4OID_binary(const PGresult *res, const int position):
   PostgresResultColumn(res,position) {}
 
@@ -275,6 +292,21 @@ void FLOAT8OID_binary::setValue(SEXP x, const R_len_t row) const {
   }
 }
 
+FLOAT4OID_binary::FLOAT4OID_binary(const PGresult *res, const int position):
+PostgresResultColumn(res,position) {}
+
+SEXP FLOAT4OID_binary::allocateSEXP(const R_len_t nrows) const {
+  return allocVector(REALSXP, nrows);
+}
+void FLOAT4OID_binary::setValue(SEXP x, const R_len_t row) const {
+  if(isNullValue(row)) {
+    REAL(x)[row] = NA_REAL;
+  } else {
+    const char *from_pg = getValue(row);
+    const uint64_t swap = ntohl(*reinterpret_cast<const uint32_t*>(from_pg));
+    REAL(x)[row] = *reinterpret_cast<const float* >(&swap);
+}
+}
 
 BOOLOID_binary::BOOLOID_binary(const PGresult *res, const int position):
   PostgresResultColumn(res,position) {}

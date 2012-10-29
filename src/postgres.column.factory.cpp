@@ -63,8 +63,12 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
       return new INT8OID_binary(res_,i);
     case INT4OID:
       return new INT4OID_binary(res_,i);
+    case INT2OID:
+      return new INT2OID_binary(res_,i);
     case DATEOID:
       return new DATEOID_binary(res_,i);
+    case FLOAT4OID:
+      return new FLOAT4OID_binary(res_,i);
     case FLOAT8OID:
       return new FLOAT8OID_binary(res_,i);
     case BOOLOID:
