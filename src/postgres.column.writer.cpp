@@ -104,7 +104,15 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
   // case BOXOID:
   // case POLYGONOID:
   // case LINEOID:
-  // case FLOAT4OID:
+  case FLOAT4OID:
+    switch(getColumnType(wjob.sexp)) {
+    case doubleT:
+      return new double2float4_writer(wjob, dest, paramLength);
+    default:
+      throw MapToTypeNotImplemented(columnType2String(getColumnType(wjob.sexp)),
+				    string("FLOAT4OID"));
+    }
+    break;
   case FLOAT8OID:
     switch(getColumnType(wjob.sexp)) {
     case doubleT:
