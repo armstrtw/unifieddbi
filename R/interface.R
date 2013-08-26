@@ -27,7 +27,7 @@ dbConnect <- function(dbType, connection.string=NULL, user=NULL, pass=NULL, host
 }
 
 dbSendQuery <- function(dbi.conn,qry) {
-    .Call("dbSendQuery", dbi.conn, qry, PACKAGE="unifiedDBI")
+    .Call("dbSendQuery", dbi.conn, as.character(qry), PACKAGE="unifiedDBI")
 }
 
 fetch <- function(dbi.query.results, nrows= -1L) {
