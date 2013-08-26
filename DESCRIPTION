@@ -1,6 +1,6 @@
 Package: unifiedDBI
 Title: R generic database interface -- because DBI sucks
-Version: 0.0.5
+Version: 0.0.6
 Maintainer: Whit Armstrong <armstrong.whit@gmail.com>
 Author: Whit Armstrong <armstrong.whit@gmail.com>
 Description: unifed database access layer
