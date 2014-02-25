@@ -28,6 +28,11 @@
 #include "column.for.writing.hpp"
 #include "conversion.utils.hpp"
 
+union i32_float_union {
+  uint32_t i32;
+  float f;
+};
+
 class PostgresColumnWriter {
 protected:
   const ColumnForWriting& wjob_;
@@ -143,17 +148,17 @@ public:
 };
 
 class double2float4_writer : public PostgresColumnWriter {
-  uint32_t hton_flipped_float;
 public:
   double2float4_writer(const ColumnForWriting& wjob, char*& dest, int& len) : PostgresColumnWriter(wjob, dest, len) {
     len_ = 4;
   }
 
   void setCharPtr(const R_len_t row) {
-    float float_for_writing = static_cast<float>(REAL(wjob_.sexp)[row + wjob_.offset]);
+    i32_float_union x;
+    x.f = static_cast<float>(REAL(wjob_.sexp)[row + wjob_.offset]);
     // FIXME: check for truncation here
-    hton_flipped_float = ntohl(*reinterpret_cast<uint32_t*>(&float_for_writing));
-    dest_ = reinterpret_cast<char*>(&hton_flipped_float);
+    x.i32 = ntohl(x.i32);
+    dest_ = reinterpret_cast<char*>(&x.f);
   }
 
   void setLength(const R_len_t row) {}
