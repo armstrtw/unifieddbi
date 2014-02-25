@@ -108,7 +108,7 @@ class char2char_writer : public PostgresColumnWriter {
 public:
   char2char_writer(const ColumnForWriting& wjob, char*& dest, int& len)
     : PostgresColumnWriter(wjob, dest, len) {
-    len_ = NULL;
+    len_ = 0;
   }
   void setCharPtr(const R_len_t row) {
     SEXP r_char_sexp = STRING_ELT(wjob_.sexp, row + wjob_.offset);
@@ -128,7 +128,7 @@ private:
 public:
   factor2char_writer(const ColumnForWriting& wjob, char*& dest, int& len)
     : PostgresColumnWriter(wjob, dest, len), levels_(getAttrib(wjob_.sexp,R_LevelsSymbol)) {
-    len_ = NULL;
+    len_ = 0;
   }
   void setCharPtr(const R_len_t row) {
     int position = INTEGER(wjob_.sexp)[row];
