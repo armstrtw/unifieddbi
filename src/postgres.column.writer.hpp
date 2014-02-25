@@ -28,11 +28,6 @@
 #include "column.for.writing.hpp"
 #include "conversion.utils.hpp"
 
-union i32_float_union {
-  uint32_t i32;
-  float f;
-};
-
 class PostgresColumnWriter {
 protected:
   const ColumnForWriting& wjob_;
@@ -41,6 +36,7 @@ protected:
   PostgresColumnWriter(const ColumnForWriting& wjob, char*& dest, int& len)
     :wjob_(wjob), dest_(dest), len_(len) {}
 public:
+  virtual ~PostgresColumnWriter() {}
   static PostgresColumnWriter* createPostgresColumnWriter(const Oid oid, const ColumnForWriting& wjob, char*& dest, int& paramLength);
   void update(const R_len_t row) {
     setCharPtr(row);
@@ -148,17 +144,17 @@ public:
 };
 
 class double2float4_writer : public PostgresColumnWriter {
+  i32_float_union x;
 public:
   double2float4_writer(const ColumnForWriting& wjob, char*& dest, int& len) : PostgresColumnWriter(wjob, dest, len) {
     len_ = 4;
   }
 
-  void setCharPtr(const R_len_t row) {
-    i32_float_union x;
+  void setCharPtr(const R_len_t row) {    
     x.f = static_cast<float>(REAL(wjob_.sexp)[row + wjob_.offset]);
     // FIXME: check for truncation here
     x.i32 = ntohl(x.i32);
-    dest_ = reinterpret_cast<char*>(&x.f);
+    dest_ = reinterpret_cast<char*>(&x.i32);
   }
 
   void setLength(const R_len_t row) {}
@@ -168,15 +164,16 @@ public:
 };
 
 class double2float8_writer : public PostgresColumnWriter {
-  uint64_t hton_flipped_double;
+  i64_double_union x;
 public:
   double2float8_writer(const ColumnForWriting& wjob, char*& dest, int& len) : PostgresColumnWriter(wjob, dest, len) {
     len_ = 8;
   }
 
-  void setCharPtr(const R_len_t row) {
-    hton_flipped_double = ntohll(*reinterpret_cast<uint64_t*>(&REAL(wjob_.sexp)[row + wjob_.offset]));
-    dest_ = reinterpret_cast<char*>(&hton_flipped_double);
+  void setCharPtr(const R_len_t row) {    
+    x.d = REAL(wjob_.sexp)[row + wjob_.offset];
+    x.i64 = ntohll(x.i64);
+    dest_ = reinterpret_cast<char*>(&x.i64);
   }
 
   void setLength(const R_len_t row) {}
@@ -186,19 +183,19 @@ public:
 };
 
 class int2int4_writer : public PostgresColumnWriter {
-  uint32_t hton_flipped_int;
+  i32_int_union x;
 public:
   int2int4_writer(const ColumnForWriting& wjob, char*& dest, int& len)  : PostgresColumnWriter(wjob, dest, len) {
     len_ = 4;
   }
 
   void setCharPtr(const R_len_t row) {
-    int int_for_writing = INTEGER(wjob_.sexp)[row + wjob_.offset];
-    if(int_for_writing == NA_INTEGER) {
+    x.i = INTEGER(wjob_.sexp)[row + wjob_.offset];
+    if(x.i == NA_INTEGER) {
       dest_ = NULL;
     } else {
-      hton_flipped_int = ntohl(*reinterpret_cast<uint32_t*>(&int_for_writing));
-      dest_ = reinterpret_cast<char*>(&hton_flipped_int);
+      x.i32 = ntohl(x.i32);
+      dest_ = reinterpret_cast<char*>(&x.i32);
     }
   }
 
@@ -209,19 +206,19 @@ public:
 };
 
 class bool2int4_writer : public PostgresColumnWriter {
-  uint32_t hton_flipped_int;
+  i32_int_union x;
 public:
   bool2int4_writer(const ColumnForWriting& wjob, char*& dest, int& len)  : PostgresColumnWriter(wjob, dest, len) {
     len_ = 4;
   }
 
   void setCharPtr(const R_len_t row) {
-    int bool_for_writing = LOGICAL(wjob_.sexp)[row + wjob_.offset];
-    if(bool_for_writing == NA_LOGICAL) {
+    x.i = LOGICAL(wjob_.sexp)[row + wjob_.offset];
+    if(x.i == NA_LOGICAL) {
       dest_ = NULL;
     } else {
-      hton_flipped_int = ntohl(*reinterpret_cast<uint32_t*>(&bool_for_writing));
-      dest_ = reinterpret_cast<char*>(&hton_flipped_int);
+      x.i32 = ntohl(x.i32);
+      dest_ = reinterpret_cast<char*>(&x.i32);
     }
   }
 

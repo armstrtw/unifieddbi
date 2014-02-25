@@ -26,11 +26,7 @@
 #include "postgres.results.column.hpp"
 #include "conversion.utils.hpp"
 
-using std::cout;
-using std::cerr;
-using std::endl;
 using namespace boost::gregorian;
-
 using namespace postgres;
 
 PostgresResultColumn::~PostgresResultColumn() {}
@@ -286,9 +282,11 @@ void FLOAT8OID_binary::setValue(SEXP x, const R_len_t row) const {
   if(isNullValue(row)) {
     REAL(x)[row] = NA_REAL;
   } else {
+    i64_double_union i64_double;
     const char *from_pg = getValue(row);
-    const uint64_t swap = ntohll(*reinterpret_cast<const uint64_t*>(from_pg));
-    REAL(x)[row] = *reinterpret_cast<const double*>(&swap);
+    memcpy(&i64_double.i64,from_pg,sizeof(i64_double.i64));
+    i64_double.i64 = ntohll(i64_double.i64);
+    REAL(x)[row] = i64_double.d;
   }
 }
 
@@ -302,10 +300,12 @@ void FLOAT4OID_binary::setValue(SEXP x, const R_len_t row) const {
   if(isNullValue(row)) {
     REAL(x)[row] = NA_REAL;
   } else {
+    i32_float_union i32_float;
     const char *from_pg = getValue(row);
-    const uint64_t swap = ntohl(*reinterpret_cast<const uint32_t*>(from_pg));
-    REAL(x)[row] = *reinterpret_cast<const float* >(&swap);
-}
+    memcpy(&i32_float.i32,from_pg,sizeof(i32_float.i32));
+    i32_float.i32 = ntohll(i32_float.i32);
+    REAL(x)[row] = i32_float.f;
+  }
 }
 
 BOOLOID_binary::BOOLOID_binary(const PGresult *res, const int position):

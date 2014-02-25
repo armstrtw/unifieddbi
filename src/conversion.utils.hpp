@@ -21,6 +21,22 @@
 #include <stdint.h>
 #include <string>
 
+
+union i32_float_union {
+  uint32_t i32;
+  float f;
+};
+
+union i64_double_union {
+  uint64_t i64;
+  double d;
+};
+
+union i32_int_union {
+  uint32_t i32;
+  int i;
+};
+
 std::string itos(const int i);
 uint64_t ntohll(const uint64_t x);
 
