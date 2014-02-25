@@ -25,9 +25,6 @@
 #include "postgres.results.column.hpp"
 #include "postgres.column.factory.hpp"
 
-using std::cout;
-using std::endl;
-
 using namespace postgres;
 
 PostgresResults::PostgresResults(const PGresult *res) : QueryResults(new PostgresColumnFactory(res)), res_(res) {
@@ -41,9 +38,9 @@ PostgresResults::~PostgresResults() {
 
 void PostgresResults::printStatus() const {
   ExecStatusType query_status = PQresultStatus(res_);
-  cout << "status: " << PQresStatus(query_status) << endl;
+  REprintf("status: %s\n",PQresStatus(query_status));
   if(query_status != PGRES_COMMAND_OK) {
-    cout << "error msg: " << PQresultErrorMessage(res_) << endl;
+    REprintf("error msg: %s\n",PQresultErrorMessage(res_));
   }
 }
 

@@ -15,7 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -29,8 +28,6 @@
 #include "utils.hpp"
 #include "database.errors.hpp"
 
-using std::cerr;
-using std::endl;
 using std::vector;
 using std::string;
 using std::stringstream;
@@ -69,7 +66,7 @@ bool PostgresConnection::connectionValid() {
 
 void PostgresConnection::verifyConnection() {
   if(PQstatus(conn_) != CONNECTION_OK) {
-    cerr << PQerrorMessage(conn_) << endl;
+    REprintf(PQerrorMessage(conn_));
     PQfinish(conn_);
     // throw
     conn_ = NULL;
@@ -109,7 +106,7 @@ bool PostgresConnection::commit() {
 
 SEXP PostgresConnection::listTables() {
   if(!connectionValid()) {
-    cerr << "cannot connect to databse" << endl;
+    REprintf("cannot connect to databse");
     return R_NilValue;
   }
 
@@ -125,7 +122,7 @@ bool PostgresConnection::existsTable(const char* tableName_char) {
   string schemaName("public");
 
   if(!connectionValid()) {
-    cerr << "cannot connect to database" << endl;
+    REprintf("cannot connect to database");
     return false;
   }
 
@@ -153,7 +150,7 @@ PostgresResults* PostgresConnection::sendQuery(const char* query) {
     //return new PostgresResults(static_cast<const PGresult*>(PQexec(conn_,query)));
     return new PostgresResults(static_cast<const PGresult*>(PQexecParams(conn_,query,0,NULL,NULL,NULL,NULL,1)));
   }
-  cerr << "bad connection to database" << endl;
+  REprintf("bad connection to database");
   return static_cast<PostgresResults*>(NULL);
 }
 
@@ -228,7 +225,7 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
   try {
     find_column_oids(oids, tableName, cols);
   } catch(unknownRelationName& e) {
-    cerr << e.what() << endl;
+    REprintf(e.what());
     return 0;
   }
 
@@ -287,8 +284,8 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
   if(PQresultStatus(res) == PGRES_COMMAND_OK) {
     commit();
   } else {
-    cerr << "status :" << PQresStatus(PQresultStatus(res)) << endl;
-    cerr << "error :" << PQresultErrorMessage(res) << endl;
+    REprintf("%s\n",PQresStatus(PQresultStatus(res)));
+    REprintf("%s\n",PQresultErrorMessage(res));
     rollback();
   }
 
@@ -302,12 +299,12 @@ int PostgresConnection::write(const char* tableName, const vector<ColumnForWriti
   }
   deallocate_res = PQexec(conn_,(string("DEALLOCATE ") + string(prepared_stmt_name)).c_str());
   if(PQresultStatus(deallocate_res) != PGRES_COMMAND_OK) {
-    cerr << "problem w/ DEALLOCATE on prepared statement." << endl;
+    REprintf("problem w/ DEALLOCATE on prepared statement.");
   }
   PQclear(deallocate_res);
 
   if(PQresultStatus(res) != PGRES_COMMAND_OK) {
-    cerr << "status:" << PQresStatus(PQresultStatus(res)) << endl;
+    REprintf(PQresStatus(PQresultStatus(res)));
     PQclear(res);
     // throw...
     return 0;

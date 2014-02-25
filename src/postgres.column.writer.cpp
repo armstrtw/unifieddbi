@@ -24,12 +24,9 @@
 #include "database.errors.hpp"
 #include "conversion.utils.hpp"
 
-using std::cout;
-using std::endl;
-using std::string;
-
 using namespace boost::gregorian;
 using namespace postgres;
+using std::string;
 
 PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid oid, const ColumnForWriting& wjob, char*& dest, int& paramLength) {
   switch(static_cast<pg_oidT>(oid)) {
@@ -178,7 +175,7 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
   // case ANYNONARRAYOID:
   // case ANYENUMOID:
   default:
-    cout << "oid: " << oid << endl;
+    REprintf("oid: %d\n",oid);
     throw MapToTypeNotImplemented(columnType2String(getColumnType(wjob.sexp)),
 				  string("OID Not Implemented"));
   }

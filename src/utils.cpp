@@ -34,8 +34,6 @@
 using std::vector;
 using std::string;
 using std::stringstream;
-using std::cout;
-using std::endl;
 using namespace boost::gregorian;
 using namespace boost::posix_time;
 
@@ -49,7 +47,7 @@ bool posixHasTimes(SEXP x) {
       x_struct_tm.tm_isdst = -1;
       localtime_r(&x_time_t, &x_struct_tm);
       if(x_struct_tm.tm_sec || x_struct_tm.tm_min || x_struct_tm.tm_hour) {
-        cout << "bad time: " << x_time_t << endl;
+        REprintf("bad time: %ld\n",x_time_t);
         return true;
       }
     }
