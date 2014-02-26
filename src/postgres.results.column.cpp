@@ -94,14 +94,9 @@ date_char::date_char(const PGresult *res, const int position):
 SEXP date_char::allocateSEXP(const R_len_t nrows) const {
   SEXP ans;
   PROTECT(ans = allocVector(REALSXP, nrows));
-
-  // create and add dates class to dates object
-  SEXP r_dates_class;
-  PROTECT(r_dates_class = allocVector(STRSXP, 2));
-  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
-  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
-  classgets(ans, r_dates_class);
-  UNPROTECT(2); // ans, r_dates_class
+  std::string timezone("");
+  add_posixct_classes(ans,timezone.c_str());
+  UNPROTECT(1); // ans
   return ans;
 }
 
@@ -138,14 +133,9 @@ TIMESTAMPOID_char::TIMESTAMPOID_char(const PGresult *res, const int position):
 SEXP TIMESTAMPOID_char::allocateSEXP(const R_len_t nrows) const {
   SEXP ans;
   PROTECT(ans = allocVector(REALSXP, nrows));
-
-  // create and add dates class to dates object
-  SEXP r_dates_class;
-  PROTECT(r_dates_class = allocVector(STRSXP, 2));
-  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
-  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
-  classgets(ans, r_dates_class);
-  UNPROTECT(2); // ans, r_dates_class
+  std::string timezone("");
+  add_posixct_classes(ans,timezone.c_str());
+  UNPROTECT(1); // ans
   return ans;
 }
 
@@ -154,7 +144,7 @@ void TIMESTAMPOID_char::setValue(SEXP x, const R_len_t row) const {
   char* milis_char;
   double milis = 0;
   double seconds;
- if(isNullValue(row)) {
+  if(isNullValue(row)) {
     REAL(x)[row] = NA_REAL;
   } else {
     memset(&tm_date, '\0', sizeof(struct tm));
@@ -188,7 +178,7 @@ void BOOLOID_char::setValue(SEXP x, const R_len_t row) const {
 }
 
 INT2OID_binary::INT2OID_binary(const PGresult *res, const int position):
-  PostgresResultColumn(res,position) {}
+PostgresResultColumn(res,position) {}
 
 SEXP INT2OID_binary::allocateSEXP(const R_len_t nrows) const {
   return allocVector(INTSXP, nrows);
@@ -205,7 +195,7 @@ void INT2OID_binary::setValue(SEXP x, const R_len_t row) const {
 }
 
 INT4OID_binary::INT4OID_binary(const PGresult *res, const int position):
-  PostgresResultColumn(res,position) {}
+PostgresResultColumn(res,position) {}
 
 SEXP INT4OID_binary::allocateSEXP(const R_len_t nrows) const {
   return allocVector(INTSXP, nrows);
@@ -222,7 +212,7 @@ void INT4OID_binary::setValue(SEXP x, const R_len_t row) const {
 }
 
 INT8OID_binary::INT8OID_binary(const PGresult *res, const int position):
-  PostgresResultColumn(res,position) {}
+PostgresResultColumn(res,position) {}
 
 SEXP INT8OID_binary::allocateSEXP(const R_len_t nrows) const {
   // use double, b/c 8 byte int can overflow R's R_int_t (32bit int)
@@ -245,14 +235,9 @@ DATEOID_binary::DATEOID_binary(const PGresult *res, const int position):
 SEXP DATEOID_binary::allocateSEXP(const R_len_t nrows) const {
   SEXP ans;
   PROTECT(ans = allocVector(REALSXP, nrows));
-
-  // create and add dates class to dates object
-  SEXP r_dates_class;
-  PROTECT(r_dates_class = allocVector(STRSXP, 2));
-  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
-  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
-  classgets(ans, r_dates_class);
-  UNPROTECT(2); // ans, r_dates_class
+  std::string timezone("");
+  add_posixct_classes(ans,timezone.c_str());
+  UNPROTECT(1); // ans
   return ans;
 }
 
@@ -273,7 +258,7 @@ void DATEOID_binary::setValue(SEXP x, const R_len_t row) const {
 }
 
 FLOAT8OID_binary::FLOAT8OID_binary(const PGresult *res, const int position):
-  PostgresResultColumn(res,position) {}
+PostgresResultColumn(res,position) {}
 
 SEXP FLOAT8OID_binary::allocateSEXP(const R_len_t nrows) const {
   return allocVector(REALSXP, nrows);
@@ -331,14 +316,9 @@ TIMESTAMPOID_binary::TIMESTAMPOID_binary(const PGresult *res, const int position
 SEXP TIMESTAMPOID_binary::allocateSEXP(const R_len_t nrows) const {
   SEXP ans;
   PROTECT(ans = allocVector(REALSXP, nrows));
-
-  // create and add dates class to dates object
-  SEXP r_dates_class;
-  PROTECT(r_dates_class = allocVector(STRSXP, 2));
-  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXt"));
-  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXct"));
-  classgets(ans, r_dates_class);
-  UNPROTECT(2); // ans, r_dates_class
+  std::string timezone("");
+  add_posixct_classes(ans,timezone.c_str());
+  UNPROTECT(1); // ans
   return ans;
 }
 

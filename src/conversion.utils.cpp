@@ -46,3 +46,16 @@ uint64_t ntohll(const uint64_t x) {
   ans.word[1] = swap.word[0];
   return ans.value;
 }
+
+void add_posixct_classes(SEXP x, const char* tzone) {
+  // create and add dates class to dates object
+  SEXP r_dates_class;
+  PROTECT(r_dates_class = allocVector(STRSXP, 2));
+  // the order of POSIXt, POSIXct frequently changes in R
+  // as of 3.0.2, it is POSIXct,POSIXt
+  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXct"));
+  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXt"));
+  classgets(x, r_dates_class);
+  setAttrib(x, install("tzone"), mkString(tzone));
+  UNPROTECT(1); //r_dates_class
+}

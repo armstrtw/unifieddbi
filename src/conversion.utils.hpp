@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 #include <string>
-
+#include <Rinternals.h>
 
 union i32_float_union {
   uint32_t i32;
@@ -39,5 +39,6 @@ union i32_int_union {
 
 std::string itos(const int i);
 uint64_t ntohll(const uint64_t x);
+void add_posixct_classes(SEXP x, const char* tzone);
 
 #endif // CONVERSION_UTILS_HPP
