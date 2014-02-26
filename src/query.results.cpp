@@ -43,27 +43,39 @@ QueryResults::~QueryResults() {
 // use nrows as parameter b/c user might not want full
 // results set of query i.e call to fetch(res, n = 100)
 SEXP QueryResults::allocSEXP(const R_len_t nrows) const {
-  SEXP ans, ans_cnames, klass, resultsSEXP;
   vector<string> colnames;
   vector<string> rownames(nrows);
 
   const int ncols = ncol();
 
-  PROTECT(ans = allocVector(VECSXP,ncols));
+  SEXP ans = PROTECT(allocVector(VECSXP,ncols));
   for(R_len_t i = 0; i < ncols; i++) {
-    PROTECT(resultsSEXP = queryResultColumns_[i]->allocateSEXP(nrows));
+    SEXP resultsSEXP = PROTECT(queryResultColumns_[i]->allocateSEXP(nrows));
     SET_VECTOR_ELT(ans,i,resultsSEXP);
     UNPROTECT(1);
   }
-  PROTECT(klass = allocVector(STRSXP, 1));
+
+  // the order of the attributes matters for testing w/ all.equal
+  // needs to be (names,row.names,class)
+
+  // names
+  getColnames(colnames);
+  SEXP ans_cnames = PROTECT(string2sexp(colnames.begin(),colnames.end()));
+  namesgets(ans,ans_cnames);
+  UNPROTECT(1); // ans_cnames
+
+  // rownames
+  // R now allows integer rownames (as of 3.0.2)
+  // test case: x <- data.frame(a=1:10,b=11:20); sapply(attributes(x),class)
+  addFakeRownames(ans, nrows);
+
+  // class attribute
+  SEXP klass = PROTECT(allocVector(STRSXP, 1));
   SET_STRING_ELT(klass, 0, mkChar("data.frame"));
   classgets(ans,klass);
-  getColnames(colnames);
-  PROTECT(ans_cnames = string2sexp(colnames.begin(),colnames.end()));
-  namesgets(ans,ans_cnames);
-  for(R_len_t i = 0; i < nrows; i++) { rownames[i] = itos(i+1); }
-  setAttrib(ans,install("row.names"),string2sexp(rownames.begin(),rownames.end()));
-  UNPROTECT(3); // ans, klass, ans_cnames
+  UNPROTECT(1); // klass
+
+  UNPROTECT(1); // ans
   return ans;
 }
 

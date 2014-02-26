@@ -33,5 +33,5 @@ void cleanString(std::string& str, const std::string& badString, const std::stri
 void cleanColnames(std::vector<std::string>& colnames, const std::string& badString, const std::string& replaceString);
 void fixColnames(std::vector<std::string>& colnames);
 std::string AddQuote(const std::string& x);
-
+void addFakeRownames(SEXP x, R_len_t nrow);
 #endif // UTILS_HPP

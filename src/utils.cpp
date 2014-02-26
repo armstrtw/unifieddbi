@@ -121,3 +121,12 @@ void fixColnames(vector<string>& colnames) {
   cleanColnames(colnames, string(")"),"");
   cleanColnames(colnames, string(" "),"_");
 }
+
+void addFakeRownames(SEXP x, R_len_t nrow) {
+  SEXP fakerownames = PROTECT(allocVector(INTSXP, nrow));
+  for(R_len_t i = 0; i < nrow; ++i) {
+    INTEGER(fakerownames)[i] = i+1;
+  }
+  setAttrib(x,install("row.names"),fakerownames);
+  UNPROTECT(1);
+}
