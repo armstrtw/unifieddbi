@@ -50,12 +50,21 @@ uint64_t ntohll(const uint64_t x) {
 void add_posixct_classes(SEXP x, const char* tzone) {
   // create and add dates class to dates object
   SEXP r_dates_class;
-  PROTECT(r_dates_class = allocVector(STRSXP, 2));
+  PROTECT(r_dates_class = Rf_allocVector(STRSXP, 2));
   // the order of POSIXt, POSIXct frequently changes in R
   // as of 3.0.2, it is POSIXct,POSIXt
-  SET_STRING_ELT(r_dates_class, 0, mkChar("POSIXct"));
-  SET_STRING_ELT(r_dates_class, 1, mkChar("POSIXt"));
-  classgets(x, r_dates_class);
-  setAttrib(x, install("tzone"), mkString(tzone));
+  SET_STRING_ELT(r_dates_class, 0, Rf_mkChar("POSIXct"));
+  SET_STRING_ELT(r_dates_class, 1, Rf_mkChar("POSIXt"));
+  Rf_classgets(x, r_dates_class);
+  Rf_setAttrib(x, Rf_install("tzone"), Rf_mkString(tzone));
+  UNPROTECT(1); //r_dates_class
+}
+
+void add_date_class(SEXP x) {
+  // create and add dates class to dates object
+  SEXP r_dates_class;
+  PROTECT(r_dates_class = Rf_allocVector(STRSXP, 1));
+  SET_STRING_ELT(r_dates_class, 0, Rf_mkChar("Date"));
+  Rf_classgets(x, r_dates_class);
   UNPROTECT(1); //r_dates_class
 }
