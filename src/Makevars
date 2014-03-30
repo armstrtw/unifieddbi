@@ -1,2 +1,2 @@
 PKG_CXXFLAGS = -g -Wall -I./RAbstraction -I/usr/include/postgresql
-PKG_LIBS     = -lpq
+PKG_LIBS     = -lpq -lboost_date_time
