@@ -18,6 +18,7 @@
 #ifndef QUERY_RESULTS_COLUMN_HPP
 #define QUERY_RESULTS_COLUMN_HPP
 
+#define R_NO_REMAP
 #include <Rinternals.h>
 
 class QueryResultColumn {
