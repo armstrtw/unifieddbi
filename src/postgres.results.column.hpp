@@ -21,6 +21,8 @@
 #include <cstring>
 #include <cstdlib>
 #include <libpq-fe.h>
+
+#define R_NO_REMAP
 #include <Rinternals.h>
 
 #include "query.results.column.hpp"

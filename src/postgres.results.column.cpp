@@ -15,7 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#include <iostream>
 #include <ctime>
 #include <netinet/in.h>
 
@@ -52,7 +51,7 @@ defaultResultColumn::defaultResultColumn(const PGresult *res, const int position
   PostgresResultColumn(res,position) {}
 
 SEXP defaultResultColumn::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(REALSXP, nrows);
+  return Rf_allocVector(REALSXP, nrows);
 }
 void defaultResultColumn::setValue(SEXP x, const R_len_t row) const {
   REAL(x)[row] = NA_REAL;
@@ -62,7 +61,7 @@ float_char::float_char(const PGresult *res, const int position):
   PostgresResultColumn(res,position) {}
 
 SEXP float_char::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(REALSXP, nrows);
+  return Rf_allocVector(REALSXP, nrows);
 }
 void float_char::setValue(SEXP x, const R_len_t row) const {
   if(isNullValue(row)) {
@@ -76,7 +75,7 @@ int_char::int_char(const PGresult *res, const int position):
   PostgresResultColumn(res,position) {}
 
 SEXP int_char::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(INTSXP, nrows);
+  return Rf_allocVector(INTSXP, nrows);
 }
 
 void int_char::setValue(SEXP x, const R_len_t row) const {
@@ -93,22 +92,19 @@ date_char::date_char(const PGresult *res, const int position):
 
 SEXP date_char::allocateSEXP(const R_len_t nrows) const {
   SEXP ans;
-  PROTECT(ans = allocVector(REALSXP, nrows));
-  std::string timezone("");
-  add_posixct_classes(ans,timezone.c_str());
+  PROTECT(ans = Rf_allocVector(INTSXP, nrows));
+  add_date_class(ans);
   UNPROTECT(1); // ans
   return ans;
 }
 
 void date_char::setValue(SEXP x, const R_len_t row) const {
-  struct tm tm_date;
+  const date r_epoch(1970,1,1);
   if(isNullValue(row)) {
-    REAL(x)[row] = NA_REAL;
+    INTEGER(x)[row] = NA_INTEGER;
   } else {
-    memset(&tm_date, '\0', sizeof(struct tm));
-    strptime(getValue(row),"%Y-%m-%d",&tm_date);
-    tm_date.tm_isdst = -1;
-    REAL(x)[row] = static_cast<double>(mktime(&tm_date));
+    date_period dp(r_epoch,from_string(std::string(getValue(row))));
+    INTEGER(x)[row] = static_cast<int>(dp.length().days());
   }
 }
 
@@ -116,14 +112,14 @@ text_char::text_char(const PGresult *res, const int position):
   PostgresResultColumn(res,position) {}
 
 SEXP text_char::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(STRSXP, nrows);
+  return Rf_allocVector(STRSXP, nrows);
 }
 
 void text_char::setValue(SEXP x, const R_len_t row) const {
   if(isNullValue(row)) {
     SET_STRING_ELT(x,row,NA_STRING);
   } else {
-    SET_STRING_ELT(x,row,mkChar(getValue(row)));
+    SET_STRING_ELT(x,row,Rf_mkChar(getValue(row)));
   }
 }
 
@@ -132,7 +128,7 @@ TIMESTAMPOID_char::TIMESTAMPOID_char(const PGresult *res, const int position):
 
 SEXP TIMESTAMPOID_char::allocateSEXP(const R_len_t nrows) const {
   SEXP ans;
-  PROTECT(ans = allocVector(REALSXP, nrows));
+  PROTECT(ans = Rf_allocVector(REALSXP, nrows));
   std::string timezone("");
   add_posixct_classes(ans,timezone.c_str());
   UNPROTECT(1); // ans
@@ -162,7 +158,7 @@ BOOLOID_char::BOOLOID_char(const PGresult *res, const int position):
   PostgresResultColumn(res,position) {}
 
 SEXP BOOLOID_char::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(LGLSXP, nrows);
+  return Rf_allocVector(LGLSXP, nrows);
 }
 
 void BOOLOID_char::setValue(SEXP x, const R_len_t row) const {
@@ -181,7 +177,7 @@ INT2OID_binary::INT2OID_binary(const PGresult *res, const int position):
 PostgresResultColumn(res,position) {}
 
 SEXP INT2OID_binary::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(INTSXP, nrows);
+  return Rf_allocVector(INTSXP, nrows);
 }
 
 void INT2OID_binary::setValue(SEXP x, const R_len_t row) const {
@@ -198,7 +194,7 @@ INT4OID_binary::INT4OID_binary(const PGresult *res, const int position):
 PostgresResultColumn(res,position) {}
 
 SEXP INT4OID_binary::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(INTSXP, nrows);
+  return Rf_allocVector(INTSXP, nrows);
 }
 
 void INT4OID_binary::setValue(SEXP x, const R_len_t row) const {
@@ -216,7 +212,7 @@ PostgresResultColumn(res,position) {}
 
 SEXP INT8OID_binary::allocateSEXP(const R_len_t nrows) const {
   // use double, b/c 8 byte int can overflow R's R_int_t (32bit int)
-  return allocVector(REALSXP, nrows);
+  return Rf_allocVector(REALSXP, nrows);
 }
 
 void INT8OID_binary::setValue(SEXP x, const R_len_t row) const {
@@ -234,26 +230,25 @@ DATEOID_binary::DATEOID_binary(const PGresult *res, const int position):
 
 SEXP DATEOID_binary::allocateSEXP(const R_len_t nrows) const {
   SEXP ans;
-  PROTECT(ans = allocVector(REALSXP, nrows));
-  std::string timezone("");
-  add_posixct_classes(ans,timezone.c_str());
+  PROTECT(ans = Rf_allocVector(INTSXP, nrows));
+  add_date_class(ans);
   UNPROTECT(1); // ans
   return ans;
 }
 
 void DATEOID_binary::setValue(SEXP x, const R_len_t row) const {
   const date pg_epoch(2000,Jan,1);
+  const date r_epoch(1970,Jan,1);
   if(isNullValue(row)) {
-    REAL(x)[row] = NA_REAL;
+    INTEGER(x)[row] = NA_INTEGER;
   } else {
     const char *from_pg = getValue(row);
     const uint32_t swap = ntohl(*reinterpret_cast<const int32_t*>(from_pg));
     const int pg_jdate = *reinterpret_cast<const int*>(&swap);
     date_duration dd(pg_jdate);
     date ans = pg_epoch + dd;
-    struct tm tm_time = to_tm(ans);
-    tm_time.tm_isdst = -1;
-    REAL(x)[row] = static_cast<double>(mktime(&tm_time));
+    date_period dp(r_epoch,ans);
+    INTEGER(x)[row] = static_cast<int>(dp.length().days());
   }
 }
 
@@ -261,7 +256,7 @@ FLOAT8OID_binary::FLOAT8OID_binary(const PGresult *res, const int position):
 PostgresResultColumn(res,position) {}
 
 SEXP FLOAT8OID_binary::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(REALSXP, nrows);
+  return Rf_allocVector(REALSXP, nrows);
 }
 void FLOAT8OID_binary::setValue(SEXP x, const R_len_t row) const {
   if(isNullValue(row)) {
@@ -279,7 +274,7 @@ FLOAT4OID_binary::FLOAT4OID_binary(const PGresult *res, const int position):
 PostgresResultColumn(res,position) {}
 
 SEXP FLOAT4OID_binary::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(REALSXP, nrows);
+  return Rf_allocVector(REALSXP, nrows);
 }
 void FLOAT4OID_binary::setValue(SEXP x, const R_len_t row) const {
   if(isNullValue(row)) {
@@ -297,7 +292,7 @@ BOOLOID_binary::BOOLOID_binary(const PGresult *res, const int position):
   PostgresResultColumn(res,position) {}
 
 SEXP BOOLOID_binary::allocateSEXP(const R_len_t nrows) const {
-  return allocVector(LGLSXP, nrows);
+  return Rf_allocVector(LGLSXP, nrows);
 }
 void BOOLOID_binary::setValue(SEXP x, const R_len_t row) const {
   if(isNullValue(row)) {
@@ -315,7 +310,7 @@ TIMESTAMPOID_binary::TIMESTAMPOID_binary(const PGresult *res, const int position
 
 SEXP TIMESTAMPOID_binary::allocateSEXP(const R_len_t nrows) const {
   SEXP ans;
-  PROTECT(ans = allocVector(REALSXP, nrows));
+  PROTECT(ans = Rf_allocVector(REALSXP, nrows));
   std::string timezone("");
   add_posixct_classes(ans,timezone.c_str());
   UNPROTECT(1); // ans
