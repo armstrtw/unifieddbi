@@ -74,14 +74,9 @@ RColumnType getColumnType(SEXP value_sexp) {
   if(most_specialized_class=="factor") { return factorT; }
   if(most_specialized_class=="character") { return charT; }
   if(most_specialized_class=="logical") { return boolT; }
-  if(most_specialized_class=="POSIXct" || least_specialized_class=="POSIXct") {
-    if(posixHasTimes(value_sexp)) {
-      return dateTimeT;
-    } else {
-      return dateT;
-    }
-  }
-
+  if(most_specialized_class=="POSIXct" || least_specialized_class=="POSIXct") { return dateTimeT; }
+  if( (most_specialized_class=="Date" || least_specialized_class=="Date") && TYPEOF(value_sexp)==INTSXP) { return intDateT; }
+  if( (most_specialized_class=="Date" || least_specialized_class=="Date") && TYPEOF(value_sexp)==REALSXP)  { return doubleDateT; }
   // not a common class, so just use basic type to convert
   return getColumnType(TYPEOF(value_sexp));
 }
@@ -101,8 +96,10 @@ std::string columnType2String(const RColumnType col) {
     return string("factorT");
   case dateTimeT:
     return string("dateTimeT");
-  case dateT:
-    return string("dateT");
+  case intDateT:
+    return string("intDateT");
+  case doubleDateT:
+    return string("doubleDateT");
   default:
     return string("not defined");
   }

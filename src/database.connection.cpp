@@ -132,7 +132,8 @@ string DatabaseConnection::getNativeType(RColumnType dbColType) {
   case charT: return getCharacterType();
   case factorT: return getFactorType();
   case dateTimeT: return getDateTimeType();
-  case dateT: return getDateType();
+  case intDateT: return getDateType();
+  case doubleDateT: return getDateType();
   default: throw unknownRColumnType(dbColType);
   }
 }

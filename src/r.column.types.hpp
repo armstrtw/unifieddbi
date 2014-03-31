@@ -21,7 +21,7 @@
 #include <string>
 #include <Rinternals.h>
 
-enum RColumnType {boolT, intT, doubleT, charT, factorT, dateTimeT, dateT};
+enum RColumnType {boolT, intT, doubleT, charT, factorT, dateTimeT, intDateT, doubleDateT};
 
 RColumnType getColumnType(const SEXPTYPE sptype);
 RColumnType getColumnType(SEXP value_sexp);
