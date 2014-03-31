@@ -15,9 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#include <iostream>
-#include <boost/date_time/gregorian/gregorian.hpp>
-
 #include "postgres.column.writer.hpp"
 #include "postgres.oid.hpp"
 #include "r.column.types.hpp"
@@ -76,7 +73,8 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
     case dateTimeT:
       throw MapToTypeNotImplemented(columnType2String(getColumnType(wjob.sexp)),
 				    string("TEXTOID/VARCHAROID/BPCHAROID"));
-    case dateT:
+    case intDateT:
+    case doubleDateT:
       throw MapToTypeNotImplemented(columnType2String(getColumnType(wjob.sexp)),
 				    string("TEXTOID/VARCHAROID/BPCHAROID"));
     default:
@@ -134,8 +132,10 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
   // case CSTRINGARRAYOID:
   case DATEOID:
     switch(getColumnType(wjob.sexp)) {
-    case dateT:
-      return new posixct2date_writer(wjob, dest, paramLength);
+    case intDateT:
+      return new intdate2date_writer(wjob, dest, paramLength);
+    case doubleDateT:
+      return new doubledate2date_writer(wjob, dest, paramLength);
     default:
       throw MapToTypeNotImplemented(columnType2String(getColumnType(wjob.sexp)),
 				    string("DATEOID"));
@@ -179,18 +179,4 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
     throw MapToTypeNotImplemented(columnType2String(getColumnType(wjob.sexp)),
 				  string("OID Not Implemented"));
   }
-}
-
-void posixct2date_writer::setCharPtr(const R_len_t row) {
-  const date pg_origin = date(2000,Jan,1);
-  time_t x_time_t = static_cast<time_t>(REAL(wjob_.sexp)[row + wjob_.offset]);
-  struct tm x_struct_tm;
-  memset(&x_struct_tm,'\0',sizeof(struct tm));
-  x_struct_tm.tm_isdst = -1;
-  localtime_r(&x_time_t, &x_struct_tm);
-  date greg_date = date_from_tm(x_struct_tm);
-  date_duration pg_julian2000(greg_date - pg_origin);
-  int julian_for_pg = static_cast<int>(pg_julian2000.days());
-  hton_flipped_int = ntohl(*reinterpret_cast<uint32_t*>(&julian_for_pg));
-  dest_ = reinterpret_cast<char*>(&hton_flipped_int);
 }
