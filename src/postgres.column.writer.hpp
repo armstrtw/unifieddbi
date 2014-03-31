@@ -17,16 +17,19 @@
 
 #ifndef POSTGRES_COLUMN_WRITER_HPP
 #define POSTGRES_COLUMN_WRITER_HPP
-#include <iostream>
 
+#include <boost/date_time/gregorian/gregorian.hpp>
 #include <netinet/in.h>
 #include <cstring>
 #include <libpq-fe.h>
+#define R_NO_REMAP
 #include <Rinternals.h>
 
 
 #include "column.for.writing.hpp"
 #include "conversion.utils.hpp"
+
+using namespace boost::gregorian;
 
 class PostgresColumnWriter {
 protected:
@@ -128,7 +131,7 @@ private:
   SEXP levels_;
 public:
   factor2char_writer(const ColumnForWriting& wjob, char*& dest, int& len)
-    : PostgresColumnWriter(wjob, dest, len), levels_(getAttrib(wjob_.sexp,R_LevelsSymbol)) {
+    : PostgresColumnWriter(wjob, dest, len), levels_(Rf_getAttrib(wjob_.sexp,R_LevelsSymbol)) {
     len_ = 0;
   }
   void setCharPtr(const R_len_t row) {
@@ -229,16 +232,50 @@ public:
   }
 };
 
-
-class posixct2date_writer : public PostgresColumnWriter {
-  //const double postgres_epoch_diff = 946684800;
-  uint32_t hton_flipped_int;
+class intdate2date_writer : public PostgresColumnWriter {
+  i32_int_union i32_int;
 public:
-  posixct2date_writer(const ColumnForWriting& wjob, char*& dest, int& len)  : PostgresColumnWriter(wjob, dest, len) {
+  intdate2date_writer(const ColumnForWriting& wjob, char*& dest, int& len)  : PostgresColumnWriter(wjob, dest, len) {
     len_ = 4;
   }
+  void setCharPtr(const R_len_t row) {
+    const date r_origin(1970,1,1);
+    const date pg_origin(2000,1,1);
 
-  void setCharPtr(const R_len_t row);
+    if(INTEGER(wjob_.sexp)[row + wjob_.offset] == NA_INTEGER) {
+      dest_ = NULL;
+    } else {
+      date r_date = r_origin + date_duration(INTEGER(wjob_.sexp)[row + wjob_.offset]);
+      i32_int.i = static_cast<int>(date_period(pg_origin,r_date).length().days());
+      i32_int.i32 = ntohl(i32_int.i32);
+      dest_ = reinterpret_cast<char*>(&i32_int.i32);
+    }
+  }
+  void setLength(const R_len_t row) {}
+  int getFormat() const {
+    return 1;
+  }
+};
+
+class doubledate2date_writer : public PostgresColumnWriter {
+  i32_int_union i32_int;
+public:
+  doubledate2date_writer(const ColumnForWriting& wjob, char*& dest, int& len)  : PostgresColumnWriter(wjob, dest, len) {
+    len_ = 4;
+  }
+  void setCharPtr(const R_len_t row) {
+    const date r_origin(1970,1,1);
+    const date pg_origin(2000,1,1);
+
+    if(R_IsNA(REAL(wjob_.sexp)[row + wjob_.offset])) {
+      dest_ = NULL;
+    } else {
+      date r_date = r_origin + date_duration(REAL(wjob_.sexp)[row + wjob_.offset]);
+      i32_int.i = static_cast<int>(date_period(pg_origin,r_date).length().days());
+      i32_int.i32 = ntohl(i32_int.i32);
+      dest_ = reinterpret_cast<char*>(&i32_int.i32);
+    }
+  }
   void setLength(const R_len_t row) {}
   int getFormat() const {
     return 1;
