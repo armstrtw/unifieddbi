@@ -19,6 +19,8 @@
 #define POSTGRES_CONNECTION_HPP
 
 #include <libpq-fe.h>
+
+#define R_NO_REMAP
 #include <Rinternals.h>
 
 #include "database.connection.hpp"

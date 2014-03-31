@@ -20,6 +20,7 @@
 #include <vector>
 #include <stdexcept>
 #include <algorithm>
+#define R_NO_REMAP
 #include <Rinternals.h>
 #include <cstdlib>
 
