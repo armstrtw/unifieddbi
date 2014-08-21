@@ -153,11 +153,15 @@ public:
     len_ = 4;
   }
 
-  void setCharPtr(const R_len_t row) {    
-    x.f = static_cast<float>(REAL(wjob_.sexp)[row + wjob_.offset]);
-    // FIXME: check for truncation here
-    x.i32 = ntohl(x.i32);
-    dest_ = reinterpret_cast<char*>(&x.i32);
+  void setCharPtr(const R_len_t row) {
+    if(ISNA(REAL(wjob_.sexp)[row + wjob_.offset])) {
+      dest_ = NULL;
+    } else {
+      x.f = static_cast<float>(REAL(wjob_.sexp)[row + wjob_.offset]);
+      // FIXME: check for truncation here
+      x.i32 = ntohl(x.i32);
+      dest_ = reinterpret_cast<char*>(&x.i32);
+    }
   }
 
   void setLength(const R_len_t row) {}
@@ -174,9 +178,13 @@ public:
   }
 
   void setCharPtr(const R_len_t row) {    
-    x.d = REAL(wjob_.sexp)[row + wjob_.offset];
-    x.i64 = ntohll(x.i64);
-    dest_ = reinterpret_cast<char*>(&x.i64);
+    if(ISNA(REAL(wjob_.sexp)[row + wjob_.offset])) {
+      dest_ = NULL;
+    } else {
+      x.d = REAL(wjob_.sexp)[row + wjob_.offset];
+      x.i64 = ntohll(x.i64);
+      dest_ = reinterpret_cast<char*>(&x.i64);
+    }
   }
 
   void setLength(const R_len_t row) {}
