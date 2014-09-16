@@ -290,4 +290,28 @@ public:
   }
 };
 
+class time2time_writer : public PostgresColumnWriter {
+  int64_t x;
+public:
+  time2time_writer(const ColumnForWriting& wjob, char*& dest, int& len)  : PostgresColumnWriter(wjob, dest, len) {
+    len_ = 8;
+  }
+  void setCharPtr(const R_len_t row) {
+    const double pg_epoch = 946684800;
+    const double microseconds_in_second = 1e6;
+
+    if(R_IsNA(REAL(wjob_.sexp)[row + wjob_.offset])) {
+      dest_ = NULL;
+    } else {
+      x = static_cast<int64_t>((REAL(wjob_.sexp)[row + wjob_.offset] - pg_epoch) * microseconds_in_second);
+      x = ntohll(x);
+      dest_ = reinterpret_cast<char*>(&x);
+    }
+  }
+  void setLength(const R_len_t row) {}
+  int getFormat() const {
+    return 1;
+  }
+};
+
 #endif // POSTGRES_COLUMN_WRITER_HPP
