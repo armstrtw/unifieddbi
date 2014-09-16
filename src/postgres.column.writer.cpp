@@ -142,7 +142,14 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
     }
     break;
   // case TIMEOID:
-  // case TIMESTAMPOID:
+  case TIMESTAMPOID:
+    switch(getColumnType(wjob.sexp)) {
+    case dateTimeT:
+      return new time2time_writer(wjob, dest, paramLength);
+    default:
+      throw MapToTypeNotImplemented(columnType2String(getColumnType(wjob.sexp)),
+				    string("TIMESTAMPOID"));
+    }
   //case TIMESTAMPTZOID:
     //return new datetime_writer(wjob, dest, paramLength);
   // case INTERVALOID:
