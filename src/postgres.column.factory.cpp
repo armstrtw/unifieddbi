@@ -38,6 +38,7 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
       return new date_char(res_, i);
     case VARCHAROID:
     case TEXTOID:
+    case JSONOID:
     case CHAROID:
     case BPCHAROID:
     case NAMEOID:
@@ -69,6 +70,7 @@ PostgresResultColumn* PostgresColumnFactory::createColumn(const int i) const {
       return new BOOLOID_binary(res_,i);
     case VARCHAROID:
     case TEXTOID:
+    case JSONOID:
     case CHAROID:
     case BPCHAROID:
     case NAMEOID:

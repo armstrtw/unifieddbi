@@ -88,10 +88,16 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
   // case XIDOID:
   // case CIDOID:
   // case OIDVECTOROID:
-  // case PG_TYPE_RELTYPE_OID:
-  // case PG_ATTRIBUTE_RELTYPE_OID:
-  // case PG_PROC_RELTYPE_OID:
-  // case PG_CLASS_RELTYPE_OID:
+  case JSONOID:
+    switch(getColumnType(wjob.sexp)) {
+    case charT:
+      return new char2char_writer(wjob, dest, paramLength);
+    default:
+      throw MapToTypeNotImplemented(columnType2String(getColumnType(wjob.sexp)),
+				    string("JSONOID"));
+    }
+    break;
+
   // case XMLOID:
   // case POINTOID:
   // case LSEGOID:
