@@ -283,7 +283,7 @@ void FLOAT4OID_binary::setValue(SEXP x, const R_len_t row) const {
     i32_float_union i32_float;
     const char *from_pg = getValue(row);
     memcpy(&i32_float.i32,from_pg,sizeof(i32_float.i32));
-    i32_float.i32 = ntohll(i32_float.i32);
+    i32_float.i32 = ntohl(i32_float.i32);
     REAL(x)[row] = i32_float.f;
   }
 }
