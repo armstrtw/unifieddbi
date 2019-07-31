@@ -26,6 +26,7 @@ using namespace postgres;
 using std::string;
 
 PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid oid, const ColumnForWriting& wjob, char*& dest, int& paramLength) {
+
   switch(static_cast<pg_oidT>(oid)) {
   case BOOLOID:
     switch(getColumnType(wjob.sexp)) {
@@ -149,6 +150,7 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
     break;
   // case TIMEOID:
   case TIMESTAMPOID:
+  case TIMESTAMPTZOID:
     switch(getColumnType(wjob.sexp)) {
     case dateTimeT:
       return new time2time_writer(wjob, dest, paramLength);
@@ -156,8 +158,6 @@ PostgresColumnWriter* PostgresColumnWriter::createPostgresColumnWriter(const Oid
       throw MapToTypeNotImplemented(columnType2String(getColumnType(wjob.sexp)),
 				    string("TIMESTAMPOID"));
     }
-  //case TIMESTAMPTZOID:
-    //return new datetime_writer(wjob, dest, paramLength);
   // case INTERVALOID:
   // case TIMETZOID:
   // case BITOID:
