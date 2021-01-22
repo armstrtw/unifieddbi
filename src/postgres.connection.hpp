@@ -46,6 +46,7 @@ namespace postgres {
     std::string getDoubleType() const { return std::string("double precision"); }
     std::string getCharacterType() const { return std::string("character varying"); }
     std::string getFactorType() const { return std::string("character varying"); }
+    //std::string getDateTimeType() const { return std::string("timestamp without time zone"); }
     std::string getDateTimeType() const { return std::string("timestamp with time zone"); }
     std::string getDateType() const { return std::string("date"); }
   public:
