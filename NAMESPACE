@@ -4,6 +4,7 @@ export(
        dbDriver,
        dbConnect,
        dbSendQuery,
+       dbQueryValid,
        fetch,
        dbFetchQuery,
        dbClearResult,

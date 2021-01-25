@@ -30,6 +30,10 @@ dbSendQuery <- function(dbi.conn,qry) {
     .Call("dbSendQuery", dbi.conn, as.character(qry), PACKAGE="unifiedDBI")
 }
 
+dbQueryValid <- function(dbi.query.results) {
+    .Call("dbQueryValid", dbi.query.results, PACKAGE="unifiedDBI")
+}
+
 fetch <- function(dbi.query.results, nrows= -1L) {
     .Call("dbfetch", dbi.query.results, as.integer(nrows), PACKAGE="unifiedDBI")
 }

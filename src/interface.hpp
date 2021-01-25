@@ -37,6 +37,7 @@ extern "C" {
 
   SEXP dbConnectWithParams(SEXP dbType_sexp, SEXP user_sexp, SEXP pass_sexp);
   SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp);
+  SEXP dbQueryValid(SEXP dbi_query_results_sexp);
   SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp);
   SEXP dbClearResult(SEXP dbi_query_results_sexp);
   SEXP dbWriteTable(SEXP dbi_conn_sexp, SEXP tableName_sexp, SEXP value_sexp, SEXP writeRowNames_sexp, SEXP overWrite_sexp, SEXP append_sexp);

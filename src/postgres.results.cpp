@@ -45,6 +45,8 @@ void PostgresResults::printStatus() const {
 }
 
 bool PostgresResults::valid() const {
+  //REprintf("PQcmdStatus: %s\n",PQcmdStatus(const_cast<PGresult*>(res_)));
+  //printStatus();
   const int res_status = PQresultStatus(res_);
   if(res_status == PGRES_COMMAND_OK ||
      res_status == PGRES_TUPLES_OK) {

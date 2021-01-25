@@ -151,6 +151,19 @@ SEXP dbSendQuery(SEXP dbi_conn_sexp, SEXP qry_sexp) {
   return dbi_query_results_sexp;
 }
 
+SEXP dbQueryValid(SEXP dbi_query_results_sexp) {
+
+  if(TYPEOF(dbi_query_results_sexp) != EXTPTRSXP || dbi_query_results_sexp == R_NilValue) {
+    return R_NilValue;
+  }
+
+  QueryResults* query_results = reinterpret_cast<QueryResults*>(R_ExternalPtrAddr(dbi_query_results_sexp));
+  SEXP ans; PROTECT(ans = allocVector(LGLSXP,1));
+  LOGICAL(ans)[0] = static_cast<int>(query_results->valid());
+  UNPROTECT(1);
+  return ans;
+}
+
 SEXP dbfetch(SEXP dbi_query_results_sexp, SEXP nrows_sexp) {
   if(TYPEOF(dbi_query_results_sexp) != EXTPTRSXP || dbi_query_results_sexp == R_NilValue) {
     return R_NilValue;
